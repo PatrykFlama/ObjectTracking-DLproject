@@ -12,4 +12,9 @@ dependencies = [
 [dependency-groups]
 dev = [
     "pytest>=9.0.2",
+    "pytest-cov>=7.0.0",
 ]
+
+[tool.pytest.ini_options]
+addopts = "--maxfail=1 --cov=src"
+
