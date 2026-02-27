@@ -45,11 +45,8 @@ jobs:
       - name: Ruff format check
         run: uv run ruff format --check .
 
-      - name: Mypy
+      - name: Run mypy type check
         run: uv run mypy src tests
 
-      - name: Pytest
-        run: uv run pytest
-
-      - name: Coverage report (term)
-        run: uv run pytest --cov=src --cov-report=term-missing
+      - name: Run tests with coverage
+        run: uv run pytest --cov=src --cov-report=xml
