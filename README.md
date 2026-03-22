@@ -11,4 +11,7 @@ uv run python src/train.py
 uv run pytest
 ```
 
-
+## Build
+```bash
+uv build
+```

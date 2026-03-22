@@ -24,6 +24,7 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+.ruff_cache
 
 
 # Unit test / coverage reports
