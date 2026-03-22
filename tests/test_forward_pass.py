@@ -1,9 +1,7 @@
-import torch
-import torch.nn as nn
+from src.train import main
 
 
-def test_forward_pass():
-    model = nn.Linear(10, 1)
-    x = torch.randn(2, 10)
-    y = model(x)
-    assert y.shape == (2, 1)
+def test_forward_pass(capsys):
+    main()
+    captured = capsys.readouterr()
+    assert "Output shape: torch.Size([4, 1])" in captured.out
