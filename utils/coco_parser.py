@@ -124,7 +124,7 @@ def mot15_to_rfdetr(
 
     for mot_split, rfdetr_split in split_map.items():
         split_dir = mot_root / mot_split
-        
+
         seq_dirs = sorted([d for d in split_dir.iterdir() if d.is_dir()])
         print(
             f"n[{mot_split} → {rfdetr_split}] {len(seq_dirs)}"
