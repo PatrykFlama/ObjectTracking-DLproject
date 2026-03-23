@@ -1,8 +1,9 @@
+import configparser
 import json
 import shutil
-import configparser
 from pathlib import Path
 
+from PIL import Image
 
 CATEGORIES = [{"id": 1, "name": "pedestrian", "supercategory": "person"}]
 
@@ -19,7 +20,6 @@ def _parse_sequence(seq_dir: Path):
         width  = int(cfg["Sequence"]["imWidth"])
         height = int(cfg["Sequence"]["imHeight"])
     else:
-        from PIL import Image
         first = sorted(img_dir.glob("*"))[0]
         width, height = Image.open(first).size
 
@@ -40,7 +40,7 @@ def _parse_sequence(seq_dir: Path):
 
     annotations = []
     if gt_path.exists():
-        with open(gt_path) as f:
+        with Path.open(gt_path) as f:
             for line in f:
                 line = line.strip()
                 if not line:
@@ -122,8 +122,10 @@ def mot15_to_rfdetr(
         split_dir = mot_root / mot_split
 
         seq_dirs = sorted([d for d in split_dir.iterdir() if d.is_dir()])
-        print(f"\n[{mot_split} → {rfdetr_split}] {len(seq_dirs)} sekwencji: {[s.name for s in seq_dirs]}")
-
+        print(
+            f'n[{mot_split} → {rfdetr_split}] {len(seq_dirs)}'
+            f'sekwencji: {[s.name for s in seq_dirs]}'
+        )
         sequences_data = []
         for seq_dir in seq_dirs:
             imgs, anns = _parse_sequence(seq_dir)
@@ -146,7 +148,7 @@ def mot15_to_rfdetr(
                     dst.symlink_to(src.resolve())
 
         ann_path = out_split_dir / "_annotations.coco.json"
-        with open(ann_path, "w") as f:
+        with Path.open(ann_path, "w") as f:
             json.dump(coco, f, indent=2)
 
     print(f"\n Dataset: {output_dir.resolve()}")
@@ -157,4 +159,4 @@ if __name__ == "__main__":
         mot_root="ds/MOT15",
         output_dir="dataset",
         copy_images=True,
-    ) 
+    )

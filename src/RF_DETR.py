@@ -1,6 +1,7 @@
 import rfdetr as rfd
 import torch
 
+
 class RFDETRT:
     def __init__(
         self,
@@ -42,8 +43,7 @@ class RFDETRT:
         )
 
     def predict(self, image_path):
-        preds = self.model.predict(image_path)
-        return preds
+        return self.model.predict(image_path)
 
     def predict_batch(self, image_paths):
         results = []
@@ -56,4 +56,4 @@ class RFDETRT:
 
     def load(self, path):
         self.model.load_state_dict(torch.load(path, map_location=self.device))
-        self.model.to(self.device) 
+        self.model.to(self.device)
