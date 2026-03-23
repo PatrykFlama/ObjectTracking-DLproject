@@ -1,13 +1,8 @@
 import torch
 import torch.nn as nn
-
-
-def main():
-    model = nn.Linear(10, 1)
-    x = torch.randn(4, 10)
-    y = model(x)
-    print("Output shape:", y.shape)
-
+from RF_DETR import RFDETRT
+from MO15ds import MOT15Dataset
 
 if __name__ == "__main__":
-    main()
+    rfdetr = RFDETRT("nano")
+    rfdetr.train("/Users/piotrek/ObjectTracking-DLproject/dataset",  epochs=10, batch_size=4)
