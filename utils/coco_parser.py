@@ -25,7 +25,7 @@ def _parse_sequence(seq_dir: Path):
 
     img_paths = sorted(img_dir.glob("*"))
     frame_to_idx = {}
-    images = []
+    images: list[dict] = []
     for img_path in img_paths:
         frame_num = int(img_path.stem)
         frame_to_idx[frame_num] = len(images)
@@ -110,8 +110,8 @@ def _build_coco(sequences_data):
 
 
 def mot15_to_rfdetr(
-    mot_root: str,
-    output_dir: str,
+    mot_root: Path,
+    output_dir: Path,
     copy_images: bool = True,
 ):
     mot_root = Path(mot_root)
@@ -124,7 +124,7 @@ def mot15_to_rfdetr(
 
     for mot_split, rfdetr_split in split_map.items():
         split_dir = mot_root / mot_split
-
+        
         seq_dirs = sorted([d for d in split_dir.iterdir() if d.is_dir()])
         print(
             f"n[{mot_split} → {rfdetr_split}] {len(seq_dirs)}"
@@ -160,7 +160,7 @@ def mot15_to_rfdetr(
 
 if __name__ == "__main__":
     mot15_to_rfdetr(
-        mot_root="ds/MOT15",
-        output_dir="dataset",
+        mot_root=Path("ds/MOT15"),
+        output_dir=Path("dataset"),
         copy_images=True,
     )
