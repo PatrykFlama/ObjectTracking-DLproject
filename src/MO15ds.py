@@ -1,4 +1,3 @@
-
 from pathlib import Path
 
 import cv2
@@ -16,15 +15,19 @@ class MOT15Dataset(Dataset):
         self.img_dir = Path(root_dir) / sequence / "img1"
         self.gt_path = Path(root_dir) / sequence / "gt" / "gt.txt"
 
-        self.gt = pd.read_csv(
-            self.gt_path,
-            header=None,
-            sep=","
-        )
+        self.gt = pd.read_csv(self.gt_path, header=None, sep=",")
         self.gt.columns = [
-            "frame", "id", "bb_left", "bb_top",
-            "bb_width", "bb_height", "conf",
-            "x", "y", "z"]
+            "frame",
+            "id",
+            "bb_left",
+            "bb_top",
+            "bb_width",
+            "bb_height",
+            "conf",
+            "x",
+            "y",
+            "z",
+        ]
 
         ## use only good quality boxes
         self.gt = self.gt[self.gt["conf"] == 1]
@@ -59,7 +62,7 @@ class MOT15Dataset(Dataset):
         target = {
             "boxes": boxes,
             "track_ids": track_ids,
-            "image_id": torch.tensor([frame_id])
+            "image_id": torch.tensor([frame_id]),
         }
 
         if self.transforms:
@@ -68,6 +71,7 @@ class MOT15Dataset(Dataset):
         image = torch.tensor(image, dtype=torch.float32)
         return image, target
 
+
 def get_MOT15_loader(root_dir, sequence, batch_size=2):
     dataset = MOT15Dataset(root_dir, sequence)
 
@@ -75,8 +79,9 @@ def get_MOT15_loader(root_dir, sequence, batch_size=2):
         dataset,
         batch_size=batch_size,
         shuffle=True,
-        collate_fn=lambda x: tuple(zip(*x))
+        collate_fn=lambda x: tuple(zip(*x)),
     )
+
 
 if __name__ == "__main__":
     loader = get_MOT15_loader("ds/MOT15/train", "ADL-Rundle-6")

@@ -7,14 +7,18 @@ class RFDETRT:
         self,
         model_size="nano",
     ):
-        models = {"nano": rfd.RFDETRNano(),
-                "small": rfd.RFDETRSmall(),
-                "medium": rfd.RFDETRMedium()}
+        models = {
+            "nano": rfd.RFDETRNano(),
+            "small": rfd.RFDETRSmall(),
+            "medium": rfd.RFDETRMedium(),
+        }
 
         self.model = models[model_size]
         self.device = (
-            "cuda" if torch.cuda.is_available()
-            else "mps" if torch.backends.mps.is_available()
+            "cuda"
+            if torch.cuda.is_available()
+            else "mps"
+            if torch.backends.mps.is_available()
             else "cpu"
         )
 
@@ -25,8 +29,8 @@ class RFDETRT:
         batch_size=4,
         lr=1e-4,
         output_dir="runs/train",
-        wandb_project = None,
-        wandb_run = None
+        wandb_project=None,
+        wandb_run=None,
     ):
         print(f"Start training | device: {self.device}")
 
@@ -39,7 +43,7 @@ class RFDETRT:
             output_dir=output_dir,
             wandb=wandb_project is not None,
             project=wandb_project if wandb_project else None,
-            run=wandb_run if wandb_run else None
+            run=wandb_run if wandb_run else None,
         )
 
     def predict(self, image_path):

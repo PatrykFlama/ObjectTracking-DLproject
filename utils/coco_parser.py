@@ -17,7 +17,7 @@ def _parse_sequence(seq_dir: Path):
     if ini_path.exists():
         cfg = configparser.ConfigParser()
         cfg.read(ini_path)
-        width  = int(cfg["Sequence"]["imWidth"])
+        width = int(cfg["Sequence"]["imWidth"])
         height = int(cfg["Sequence"]["imHeight"])
     else:
         first = sorted(img_dir.glob("*"))[0]
@@ -29,14 +29,16 @@ def _parse_sequence(seq_dir: Path):
     for img_path in img_paths:
         frame_num = int(img_path.stem)
         frame_to_idx[frame_num] = len(images)
-        images.append({
-            "_src":      img_path,
-            "file_name": img_path.name,
-            "width":     width,
-            "height":    height,
-            "seq_name":  seq_name,
-            "frame_id":  frame_num,
-        })
+        images.append(
+            {
+                "_src": img_path,
+                "file_name": img_path.name,
+                "width": width,
+                "height": height,
+                "seq_name": seq_name,
+                "frame_id": frame_num,
+            }
+        )
 
     annotations = []
     if gt_path.exists():
@@ -50,26 +52,28 @@ def _parse_sequence(seq_dir: Path):
                 if int(float(parts[6])) == 0:
                     continue
 
-                frame  = int(parts[0])
+                frame = int(parts[0])
                 obj_id = int(parts[1])
-                x      = float(parts[2])
-                y      = float(parts[3])
-                w      = float(parts[4])
-                h      = float(parts[5])
-                vis    = float(parts[8]) if len(parts) > 8 else 1.0
+                x = float(parts[2])
+                y = float(parts[3])
+                w = float(parts[4])
+                h = float(parts[5])
+                vis = float(parts[8]) if len(parts) > 8 else 1.0
 
                 if frame not in frame_to_idx:
                     continue
 
-                annotations.append({
-                    "_frame_idx": frame_to_idx[frame],
-                    "category_id": 1,
-                    "bbox":        [x, y, w, h],
-                    "area":        w * h,
-                    "iscrowd":     0,
-                    "track_id":    obj_id,
-                    "visibility":  vis,
-                })
+                annotations.append(
+                    {
+                        "_frame_idx": frame_to_idx[frame],
+                        "category_id": 1,
+                        "bbox": [x, y, w, h],
+                        "area": w * h,
+                        "iscrowd": 0,
+                        "track_id": obj_id,
+                        "visibility": vis,
+                    }
+                )
 
     return images, annotations
 
@@ -78,7 +82,7 @@ def _build_coco(sequences_data):
     images = []
     annotations = []
     image_id = 1
-    ann_id   = 1
+    ann_id = 1
 
     for seq_images, seq_anns in sequences_data:
         local_id_map = {}
@@ -91,16 +95,16 @@ def _build_coco(sequences_data):
 
         for ann in seq_anns:
             entry = {k: v for k, v in ann.items() if k != "_frame_idx"}
-            entry["id"]       = ann_id
+            entry["id"] = ann_id
             entry["image_id"] = local_id_map[ann["_frame_idx"]]
             annotations.append(entry)
             ann_id += 1
 
     return {
-        "info":        {"description": "MOT15 in COCO format"},
-        "licenses":    [],
-        "categories":  CATEGORIES,
-        "images":      images,
+        "info": {"description": "MOT15 in COCO format"},
+        "licenses": [],
+        "categories": CATEGORIES,
+        "images": images,
         "annotations": annotations,
     }
 
@@ -110,12 +114,12 @@ def mot15_to_rfdetr(
     output_dir: str,
     copy_images: bool = True,
 ):
-    mot_root   = Path(mot_root)
+    mot_root = Path(mot_root)
     output_dir = Path(output_dir)
 
     split_map = {
         "train": "train",
-        "val":   "valid",
+        "val": "valid",
     }
 
     for mot_split, rfdetr_split in split_map.items():
@@ -123,8 +127,8 @@ def mot15_to_rfdetr(
 
         seq_dirs = sorted([d for d in split_dir.iterdir() if d.is_dir()])
         print(
-            f'n[{mot_split} → {rfdetr_split}] {len(seq_dirs)}'
-            f'sekwencji: {[s.name for s in seq_dirs]}'
+            f"n[{mot_split} → {rfdetr_split}] {len(seq_dirs)}"
+            f"sekwencji: {[s.name for s in seq_dirs]}"
         )
         sequences_data = []
         for seq_dir in seq_dirs:
@@ -136,7 +140,7 @@ def mot15_to_rfdetr(
         out_split_dir = output_dir / rfdetr_split
         out_split_dir.mkdir(parents=True, exist_ok=True)
 
-        for (seq_imgs, _) in sequences_data:
+        for seq_imgs, _ in sequences_data:
             for img in seq_imgs:
                 src = img["_src"]
                 dst = out_split_dir / img["file_name"]
