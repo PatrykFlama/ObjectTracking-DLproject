@@ -5,6 +5,7 @@
 
 ## Setup
 ```bash
+uvx pre-commit install
 uv sync
 uv run python src/train.py
 ```
