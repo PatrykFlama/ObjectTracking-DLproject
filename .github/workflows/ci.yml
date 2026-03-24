@@ -33,8 +33,8 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-uv-
 
-      - name: Sync dependencies (incl. dev)
-        run: uv sync --all-groups --frozen
+      - name: Sync dependencies
+        run: uv sync --group dev --frozen
 
       - name: Ruff lint
         run: uv run ruff check .
