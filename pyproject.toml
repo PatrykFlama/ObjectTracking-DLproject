@@ -1,7 +1,7 @@
 [project]
-name = "ObjectTracking-DLproject"
+name = "objtracker"
 version = "0.1.0"
-description = "Add your description here"
+description = "Object tracking library."
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
@@ -19,6 +19,7 @@ dev = [
 
 [tool.pytest.ini_options]
 addopts = "--maxfail=1 --cov=src"
+pythonpath = ["src"]
 
 
 [tool.ruff]
@@ -55,4 +56,3 @@ python_version = "3.12"
 ignore_missing_imports = true
 strict_optional = true
 warn_unused_ignores = true
-

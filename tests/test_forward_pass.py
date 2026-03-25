@@ -1,4 +1,4 @@
-from src.train import main
+from objtracker.train import main
 
 
 def test_forward_pass(capsys):
