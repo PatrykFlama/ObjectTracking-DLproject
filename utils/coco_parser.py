@@ -127,8 +127,8 @@ def mot15_to_rfdetr(
 
         seq_dirs = sorted([d for d in split_dir.iterdir() if d.is_dir()])
         print(
-            f"n[{mot_split} → {rfdetr_split}] {len(seq_dirs)}"
-            f"sekwencji: {[s.name for s in seq_dirs]}"
+            f"\n[{mot_split} → {rfdetr_split}] {len(seq_dirs)}"
+            f"sequences: {[s.name for s in seq_dirs]}"
         )
         sequences_data = []
         for seq_dir in seq_dirs:
