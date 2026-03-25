@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from src.RF_DETR import RFDETRT
+from objtracker.RF_DETR import RFDETRT
 
 if __name__ == "__main__":
     project_root = Path(__file__).resolve().parents[1]

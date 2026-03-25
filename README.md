@@ -5,8 +5,9 @@
 
 ## Setup
 ```bash
+uvx pre-commit install
 uv sync
-uv run python src/train.py
+uv run python src/objtracker/train.py
 ```
 
 ## Test
