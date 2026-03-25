@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import Any
 
 import cv2
 import pandas as pd
@@ -6,7 +7,7 @@ import torch
 from torch.utils.data import DataLoader, Dataset
 
 
-class MOT15Dataset(Dataset):
+class MOT15Dataset(Dataset[tuple[torch.Tensor, dict[str, torch.Tensor]]]):
     def __init__(self, root_dir, sequence, transforms=None):
         self.root_dir = root_dir
         self.sequence = sequence
@@ -36,11 +37,16 @@ class MOT15Dataset(Dataset):
     def __len__(self):
         return len(self.frames)
 
-    def __getitem__(self, idx):
-        frame_id = self.frames[idx]
+    def __getitem__(
+        self, index: Any
+    ) -> tuple[torch.Tensor, dict[str, torch.Tensor]]:
+        frame_id = self.frames[index]
 
         img_path = Path(self.img_dir) / f"{frame_id:06d}.jpg"
-        image = cv2.imread(img_path)
+        image = cv2.imread(str(img_path))
+        if image is None:
+            msg = f"Could not read image file: {img_path}"
+            raise FileNotFoundError(msg)
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
         records = self.gt[self.gt["frame"] == frame_id]

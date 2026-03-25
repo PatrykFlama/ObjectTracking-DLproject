@@ -1,3 +1,5 @@
+from typing import Any
+
 import rfdetr as rfd
 import torch
 
@@ -13,7 +15,7 @@ class RFDETRT:
             "medium": rfd.RFDETRMedium(),
         }
 
-        self.model = models[model_size]
+        self.model: Any = models[model_size]
         self.device = (
             "cuda"
             if torch.cuda.is_available()
