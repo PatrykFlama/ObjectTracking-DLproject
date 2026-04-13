@@ -1,13 +1,14 @@
-import torch
-import torch.nn as nn
+from pathlib import Path
 
-
-def main():
-    model = nn.Linear(10, 1)
-    x = torch.randn(4, 10)
-    y = model(x)
-    print("Output shape:", y.shape)
-
+from objtracker.RF_DETR import RFDETRTrainer
 
 if __name__ == "__main__":
-    main()
+    project_root = Path(__file__).resolve().parents[1]
+    dataset_dir = project_root / "dataset"
+
+    rfdetr = RFDETRTrainer("nano")
+    rfdetr.train(
+        str(dataset_dir),
+        epochs=10,
+        batch_size=4,
+    )
