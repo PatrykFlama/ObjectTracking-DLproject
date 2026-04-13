@@ -18,7 +18,8 @@ class RFDETRTrainer:
         if model_size not in models:
             allowed = ", ".join(models.keys())
             raise ValueError(
-                f"Invalid model_size {model_size!r}. Allowed values are: {allowed}."
+                f"Invalid model_size {model_size!r}. Allowed values are: "
+                f"{allowed}."
             )
         self.model: Any = models[model_size]
         self.device = (
