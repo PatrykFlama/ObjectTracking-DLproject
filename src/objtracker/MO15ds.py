@@ -32,7 +32,8 @@ class MOT15Dataset(Dataset[tuple[torch.Tensor, dict[str, torch.Tensor]]]):
 
         ## use only good quality boxes
         self.gt = self.gt[self.gt["conf"] == 1]
-        self.frames = sorted(self.gt["frame"])
+        # use unique, sorted frame ids so each dataset item corresponds to one frame
+        self.frames = sorted(self.gt["frame"].unique())
 
     def __len__(self):
         return len(self.frames)
