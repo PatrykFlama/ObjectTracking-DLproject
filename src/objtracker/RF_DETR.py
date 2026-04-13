@@ -15,6 +15,11 @@ class RFDETRT:
             "medium": rfd.RFDETRMedium(),
         }
 
+        if model_size not in models:
+            allowed = ", ".join(models.keys())
+            raise ValueError(
+                f"Invalid model_size {model_size!r}. Allowed values are: {allowed}."
+            )
         self.model: Any = models[model_size]
         self.device = (
             "cuda"
