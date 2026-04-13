@@ -4,7 +4,7 @@ import rfdetr as rfd
 import torch
 
 
-class RFDETRT:
+class RFDETRTrainer:
     def __init__(
         self,
         model_size="nano",
