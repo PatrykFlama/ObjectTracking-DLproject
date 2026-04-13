@@ -20,8 +20,14 @@ def _parse_sequence(seq_dir: Path):
         width = int(cfg["Sequence"]["imWidth"])
         height = int(cfg["Sequence"]["imHeight"])
     else:
-        first = sorted(img_dir.glob("*"))[0]
-        width, height = Image.open(first).size
+        img_files = sorted(img_dir.glob("*"))
+        if img_files:
+            first = img_files[0]
+            with Image.open(first) as img:
+                width, height = img.size
+        else:
+            width = 0
+            height = 0
 
     img_paths = sorted(img_dir.glob("*"))
     frame_to_idx = {}
