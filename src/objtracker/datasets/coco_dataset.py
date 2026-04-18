@@ -1,8 +1,9 @@
 from pathlib import Path
 from typing import Any
 
-import cv2
+import numpy as np
 import torch
+from PIL import Image
 
 from objtracker.datasets.mot15_dataset import MOT15Dataset
 
@@ -12,12 +13,10 @@ class CocoDataset(MOT15Dataset):
         frame_id = self.frames[index]
 
         img_path = Path(self.img_dir) / f"{frame_id:06d}.jpg"
-        image = cv2.imread(str(img_path))
-        if image is None:
+        if not img_path.exists():
             msg = f"Could not read image file: {img_path}"
             raise FileNotFoundError(msg)
-
-        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+        image = np.array(Image.open(img_path).convert("RGB"))
 
         # Grab image dimensions for normalization
         img_h, img_w = image.shape[:2]
