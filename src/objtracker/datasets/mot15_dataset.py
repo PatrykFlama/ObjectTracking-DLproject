@@ -4,7 +4,7 @@ from typing import Any
 import cv2
 import pandas as pd
 import torch
-from torch.utils.data import DataLoader, Dataset
+from torch.utils.data import Dataset
 
 
 class MOT15Dataset(Dataset[tuple[torch.Tensor, dict[str, torch.Tensor]]]):
@@ -38,9 +38,7 @@ class MOT15Dataset(Dataset[tuple[torch.Tensor, dict[str, torch.Tensor]]]):
     def __len__(self):
         return len(self.frames)
 
-    def __getitem__(
-        self, index: Any
-    ) -> tuple[torch.Tensor, dict[str, torch.Tensor]]:
+    def __getitem__(self, index: Any) -> tuple[torch.Tensor, dict[str, torch.Tensor]]:
         frame_id = self.frames[index]
 
         img_path = Path(self.img_dir) / f"{frame_id:06d}.jpg"
@@ -77,25 +75,3 @@ class MOT15Dataset(Dataset[tuple[torch.Tensor, dict[str, torch.Tensor]]]):
 
         image = torch.tensor(image, dtype=torch.float32)
         return image, target
-
-
-def get_mot15_loader(root_dir, sequence, batch_size=2):
-    dataset = MOT15Dataset(root_dir, sequence)
-
-    return DataLoader(
-        dataset,
-        batch_size=batch_size,
-        shuffle=True,
-        collate_fn=lambda x: tuple(zip(*x)),
-    )
-
-
-if __name__ == "__main__":
-    loader = get_mot15_loader("ds/MOT15/train", "ADL-Rundle-6")
-
-    for images, targets in loader:
-        print("Batch:", len(images))
-        print("Image tensor shape:", images[0].shape)
-        print("Boxes:", targets[0]["boxes"])
-        print("Track IDs:", targets[0]["track_ids"])
-        break

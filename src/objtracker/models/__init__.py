@@ -1,3 +1,3 @@
-from objtracker.models.rf_detr import RFDETRTrainer, set_seed
+from objtracker.models.rf_detr import RFDETRLightning
 
-__all__ = ["RFDETRTrainer", "set_seed"]
+__all__ = ["RFDETRLightning"]

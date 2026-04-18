@@ -165,8 +165,9 @@ def mot15_to_rfdetr(
 
 
 if __name__ == "__main__":
+    project_root = Path(__file__).resolve().parents[3]
     mot15_to_rfdetr(
-        mot_root=Path("/Users/piotrek/ObjectTracking-DLproject/ds/MOT15"),
-        output_dir=Path("dataset"),
+        mot_root=project_root / "ds" / "MOT15",
+        output_dir=project_root / "dataset",
         copy_images=True,
     )
