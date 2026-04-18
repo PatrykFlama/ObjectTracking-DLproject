@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from objtracker.RF_DETR import RFDETRTrainer
+from objtracker.models.RF_DETR import RFDETRTrainer
 
 if __name__ == "__main__":
     project_root = Path(__file__).resolve().parents[1]

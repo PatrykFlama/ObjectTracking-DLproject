@@ -3,7 +3,7 @@ from pathlib import Path
 
 import yaml
 
-from objtracker.RF_DETR import RFDETRTrainer, set_seed
+from objtracker.models.RF_DETR import RFDETRTrainer, set_seed
 
 
 def load_config(config_path: Path) -> dict:
