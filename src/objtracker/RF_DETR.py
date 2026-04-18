@@ -1,14 +1,18 @@
-from typing import Any
-import random
 import os
+import random
+from typing import Any
+
 import numpy as np
 import rfdetr as rfd
 import torch
 
+RNG = np.random.default_rng()
+
 
 def set_seed(seed: int) -> None:
+    global RNG
     random.seed(seed)
-    np.random.seed(seed)
+    RNG = np.random.default_rng(seed)
     torch.manual_seed(seed)
     torch.cuda.manual_seed_all(seed)
     torch.backends.cudnn.deterministic = True
@@ -34,7 +38,8 @@ class RFDETRTrainer:
         if model_size not in models:
             allowed = ", ".join(models.keys())
             raise ValueError(
-                f"Invalid model_size {model_size!r}. Allowed values are: {allowed}."
+                f"Invalid model_size {model_size!r}. "
+                f"Allowed values are: {allowed}."
             )
 
         self.model_size = model_size
@@ -59,7 +64,7 @@ class RFDETRTrainer:
         wandb_run: str | None = None,
         wandb_entity: str | None = None,
     ) -> None:
-        
+
         print(
             f"MODEL TRAINING"
             f"device={self.device} | seed={self.seed}"

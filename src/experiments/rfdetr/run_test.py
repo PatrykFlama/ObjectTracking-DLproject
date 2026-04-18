@@ -3,24 +3,31 @@ from pathlib import Path
 
 import yaml
 
-from src.objtracker.RF_DETR import RFDETRTrainer, set_seed
+from objtracker.RF_DETR import RFDETRTrainer, set_seed
 
 
 def load_config(config_path: Path) -> dict:
-    with open(config_path) as f:
+    with config_path.open() as f:
         return yaml.safe_load(f)
 
 
 def run_experiment(exp: dict, cfg: dict, dataset_dir: Path) -> None:
     name: str = exp["name"]
     seed: int = cfg["seed"]
+    epochs: int = int(exp["epochs"])
+    batch_size_raw = exp.get("batch_size")
+    batch_size: int = int(batch_size_raw) if batch_size_raw is not None else 4
+    lr: float = float(exp["lr"])
+    grad_accum_steps: int = int(exp.get("grad_accum_steps", 4))
 
     print(exp)
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print(f"  Experiment: {name}")
-    print(f"  seed={seed} | model={exp['model_size']} | "
-          f"lr={exp['lr']} | epochs={exp['epochs']}")
-    print(f"{'='*60}\n")
+    print(
+        f"  seed={seed} | model={exp['model_size']} | "
+        f"lr={lr} | epochs={epochs}"
+    )
+    print(f"{'=' * 60}\n")
 
     set_seed(seed)
 
@@ -28,10 +35,10 @@ def run_experiment(exp: dict, cfg: dict, dataset_dir: Path) -> None:
 
     trainer.train(
         dataset_dir=str(dataset_dir),
-        epochs=exp["epochs"],
-        batch_size=exp.get("batch_size", None),
-        lr=exp["lr"],
-        grad_accum_steps=exp.get("grad_accum_steps", 4),
+        epochs=epochs,
+        batch_size=batch_size,
+        lr=lr,
+        grad_accum_steps=grad_accum_steps,
         output_dir=f"{cfg['output_dir']}/{name}",
         wandb_project=cfg["wandb"]["project"],
         wandb_run=name,
@@ -42,7 +49,9 @@ def run_experiment(exp: dict, cfg: dict, dataset_dir: Path) -> None:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="RF-DETR reproducible training")
+    parser = argparse.ArgumentParser(
+        description="RF-DETR reproducible training"
+    )
     parser.add_argument(
         "--config",
         default="config.yaml",
@@ -65,9 +74,14 @@ def main() -> None:
     if args.experiment:
         experiments = [e for e in experiments if e["name"] == args.experiment]
         if not experiments:
-            raise ValueError(f"No experiment named '{args.experiment}' found in config.")
+            raise ValueError(
+                f"No experiment named '{args.experiment}' found in config."
+            )
 
-    print(f"[Train] Running {len(experiments)} experiment(s) | W&B project: {cfg['wandb']['project']}")
+    print(
+        f"[Train] Running {len(experiments)} experiment(s)"
+        f" | W&B project: {cfg['wandb']['project']}"
+    )
 
     for exp in experiments:
         run_experiment(exp, cfg, dataset_dir)
