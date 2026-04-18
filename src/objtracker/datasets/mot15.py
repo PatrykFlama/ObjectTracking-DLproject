@@ -79,7 +79,7 @@ class MOT15Dataset(Dataset[tuple[torch.Tensor, dict[str, torch.Tensor]]]):
         return image, target
 
 
-def get_MOT15_loader(root_dir, sequence, batch_size=2):
+def get_mot15_loader(root_dir, sequence, batch_size=2):
     dataset = MOT15Dataset(root_dir, sequence)
 
     return DataLoader(
@@ -91,7 +91,7 @@ def get_MOT15_loader(root_dir, sequence, batch_size=2):
 
 
 if __name__ == "__main__":
-    loader = get_MOT15_loader("ds/MOT15/train", "ADL-Rundle-6")
+    loader = get_mot15_loader("ds/MOT15/train", "ADL-Rundle-6")
 
     for images, targets in loader:
         print("Batch:", len(images))
