@@ -1,4 +1,5 @@
 import sys
+from datetime import datetime
 from pathlib import Path
 
 # Support direct execution: `uv run src/objtracker/train.py`.
@@ -27,7 +28,7 @@ if __name__ == "__main__":
 
     print("Initializing Weights & Biases...")
     project_name = "MOT15-Tracking"
-    run_name = "RFDETR-nano-baseline"
+    run_name = "RFDETR-nano-baseline_" + datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     wandb_logger = build_wandb_logger(
         project_root=project_root,
         project_name=project_name,
@@ -42,7 +43,7 @@ if __name__ == "__main__":
 
     print("Starting Lightning Trainer...")
     trainer = pl.Trainer(
-        max_epochs=10,
+        max_epochs=100,
         accelerator="auto",
         log_every_n_steps=1,
         logger=[wandb_logger, tensorboard_logger],
