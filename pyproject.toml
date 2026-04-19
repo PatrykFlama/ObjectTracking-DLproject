@@ -5,11 +5,15 @@ description = "Object tracking library."
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
+    "kagglehub>=1.0.0",
     "numpy>=2.4.2",
-    "opencv-python>=4.13.0.92",
     "pandas>=3.0.1",
+    "pillow>=12.0.0",
+    "pytorch-lightning>=2.6.1",
     "rfdetr>=1.6.0",
+    "tensorboard>=2.20.0",
     "torch>=2.10.0",
+    "wandb>=0.26.0",
 ]
 
 [dependency-groups]
@@ -23,10 +27,11 @@ dev = [
 [tool.pytest.ini_options]
 addopts = "--maxfail=1 --cov=src"
 pythonpath = ["src"]
+testpaths = ["tests"]
 
 
 [tool.ruff]
-line-length = 79
+line-length = 88
 target-version = "py312"
 
 [tool.ruff.format]

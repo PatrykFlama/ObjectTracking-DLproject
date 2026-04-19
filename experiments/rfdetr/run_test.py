@@ -23,10 +23,7 @@ def run_experiment(exp: dict, cfg: dict, dataset_dir: Path) -> None:
     print(exp)
     print(f"\n{'=' * 60}")
     print(f"  Experiment: {name}")
-    print(
-        f"  seed={seed} | model={exp['model_size']} | "
-        f"lr={lr} | epochs={epochs}"
-    )
+    print(f"  seed={seed} | model={exp['model_size']} | lr={lr} | epochs={epochs}")
     print(f"{'=' * 60}\n")
 
     set_seed(seed)
@@ -49,9 +46,7 @@ def run_experiment(exp: dict, cfg: dict, dataset_dir: Path) -> None:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(
-        description="RF-DETR reproducible training"
-    )
+    parser = argparse.ArgumentParser(description="RF-DETR reproducible training")
     parser.add_argument(
         "--config",
         default="config.yaml",
