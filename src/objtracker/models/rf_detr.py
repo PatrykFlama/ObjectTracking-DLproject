@@ -11,11 +11,11 @@ class RFDETRLightning(pl.LightningModule):
         self.lr = lr
 
         models = {
-            "nano": rfd.RFDETRNano(),
-            "small": rfd.RFDETRSmall(),
-            "medium": rfd.RFDETRMedium(),
+            "nano": rfd.RFDETRNano,
+            "small": rfd.RFDETRSmall,
+            "medium": rfd.RFDETRMedium,
         }
-        self.rfdetr_model = models[model_size]
+        self.rfdetr_model = models[model_size]()
         # RF-DETR variant objects wrap the actual torch module under .model.model.
         self.model = self.rfdetr_model.model.model
 
