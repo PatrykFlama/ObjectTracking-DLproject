@@ -8,16 +8,13 @@ if __package__ is None or __package__ == "":
         sys.path.insert(0, str(src_root))
 
 import pytorch_lightning as pl
-from pytorch_lightning.loggers import TensorBoardLogger, WandbLogger
 
 from objtracker.datasets.coco import CocoDataModule
 from objtracker.models.rf_detr import RFDETRLightning
+from objtracker.utils import build_tensorboard_logger, build_wandb_logger
 
 if __name__ == "__main__":
     project_root = Path(__file__).resolve().parents[2]
-    artifacts_dir = project_root / "artifacts"
-    tensorboard_dir = artifacts_dir / "tensorboard"
-    tensorboard_dir.mkdir(parents=True, exist_ok=True)
 
     print("Initializing Model...")
     model = RFDETRLightning(model_size="nano", lr=1e-4)
@@ -29,16 +26,18 @@ if __name__ == "__main__":
     )
 
     print("Initializing Weights & Biases...")
-    # Setup the WandB Logger
-    wandb_logger = WandbLogger(
-        project="MOT15-Tracking",  # Name of the project in your WandB dashboard
-        name="RFDETR-nano-baseline",  # Name of this specific run
-        log_model="all",  # Automatically saves your best model weights to the cloud!
+    project_name = "MOT15-Tracking"
+    run_name = "RFDETR-nano-baseline"
+    wandb_logger = build_wandb_logger(
+        project_root=project_root,
+        project_name=project_name,
+        run_name=run_name,
+        log_model="all",
     )
-    tensorboard_logger = TensorBoardLogger(
-        save_dir=str(tensorboard_dir),
-        name="MOT15-Tracking",
-        version="RFDETR-nano-baseline",
+    tensorboard_logger = build_tensorboard_logger(
+        project_root=project_root,
+        project_name=project_name,
+        run_name=run_name,
     )
 
     print("Starting Lightning Trainer...")
