@@ -47,7 +47,8 @@ coverage.xml
 *.swo
 
 # Misc
-examples/
-wandb/
 *.log
 *.pth
+artifacts/
+examples/
+wandb/

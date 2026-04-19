@@ -8,12 +8,17 @@ if __package__ is None or __package__ == "":
         sys.path.insert(0, str(src_root))
 
 import pytorch_lightning as pl
-from pytorch_lightning.loggers import WandbLogger
+from pytorch_lightning.loggers import TensorBoardLogger, WandbLogger
 
 from objtracker.datasets.coco import CocoDataModule
 from objtracker.models.rf_detr import RFDETRLightning
 
 if __name__ == "__main__":
+    project_root = Path(__file__).resolve().parents[2]
+    artifacts_dir = project_root / "artifacts"
+    tensorboard_dir = artifacts_dir / "tensorboard"
+    tensorboard_dir.mkdir(parents=True, exist_ok=True)
+
     print("Initializing Model...")
     model = RFDETRLightning(model_size="nano", lr=1e-4)
 
@@ -30,13 +35,18 @@ if __name__ == "__main__":
         name="RFDETR-nano-baseline",  # Name of this specific run
         log_model="all",  # Automatically saves your best model weights to the cloud!
     )
+    tensorboard_logger = TensorBoardLogger(
+        save_dir=str(tensorboard_dir),
+        name="MOT15-Tracking",
+        version="RFDETR-nano-baseline",
+    )
 
     print("Starting Lightning Trainer...")
     trainer = pl.Trainer(
         max_epochs=10,
         accelerator="auto",
         log_every_n_steps=1,
-        logger=wandb_logger,  # Hand the logger to the Trainer
+        logger=[wandb_logger, tensorboard_logger],
     )
 
     trainer.fit(model, datamodule=data_module)
