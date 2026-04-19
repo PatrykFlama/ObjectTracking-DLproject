@@ -7,6 +7,10 @@ from objtracker.datasets.mot15 import MOT15DataModule
 
 
 class CocoDataModule(MOT15DataModule):
+    def __init__(self, batch_size: int = 4, image_size: int = 640):
+        super().__init__(batch_size=batch_size)
+        self.image_size = image_size
+
     def setup(self, stage=None):
         """Initialize datasets from the cached MOT15 archive."""
         cached_path = kagglehub.dataset_download(self.dataset_repo)
@@ -17,5 +21,7 @@ class CocoDataModule(MOT15DataModule):
 
         if stage in ("fit", None):
             self.train_dataset = CocoDataset(
-                root_dir=str(train_path), sequence="ADL-Rundle-6"
+                root_dir=str(train_path),
+                sequence="ADL-Rundle-6",
+                image_size=self.image_size,
             )

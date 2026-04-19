@@ -48,3 +48,6 @@ coverage.xml
 
 # Misc
 examples/
+wandb/
+*.log
+*.pth

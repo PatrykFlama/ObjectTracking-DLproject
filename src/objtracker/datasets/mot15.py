@@ -2,6 +2,7 @@ from pathlib import Path
 
 import kagglehub
 import pytorch_lightning as pl
+from rfdetr.utilities.tensors import collate_fn
 from torch.utils.data import DataLoader
 
 from objtracker.datasets.mot15_dataset import MOT15Dataset
@@ -24,9 +25,7 @@ class MOT15DataModule(pl.LightningDataModule):
 
         base_dir = Path(cached_path)
         mot15_train = base_dir / "MOT15" / "train"
-        train_path = (
-            mot15_train if mot15_train.exists() else base_dir / "train"
-        )
+        train_path = mot15_train if mot15_train.exists() else base_dir / "train"
 
         if stage in ("fit", None):
             self.train_dataset = MOT15Dataset(
@@ -39,6 +38,13 @@ class MOT15DataModule(pl.LightningDataModule):
             self.train_dataset,
             batch_size=self.batch_size,
             shuffle=True,
-            collate_fn=lambda batch: tuple(zip(*batch)),
+            collate_fn=collate_fn,
             num_workers=4,
         )
+
+    def transfer_batch_to_device(self, batch, device, dataloader_idx):
+        """Move NestedTensor samples and target tensors to the selected device."""
+        samples, targets = batch
+        samples = samples.to(device)
+        targets = [{k: v.to(device) for k, v in t.items()} for t in targets]
+        return samples, targets

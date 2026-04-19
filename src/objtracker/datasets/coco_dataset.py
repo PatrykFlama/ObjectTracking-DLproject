@@ -4,11 +4,24 @@ from typing import Any
 import numpy as np
 import torch
 from PIL import Image
+from torchvision.transforms import functional as F
 
 from objtracker.datasets.mot15_dataset import MOT15Dataset
 
 
 class CocoDataset(MOT15Dataset):
+    def __init__(
+        self,
+        root_dir: str,
+        sequence: str,
+        transforms=None,
+        image_size: int = 640,
+    ):
+        super().__init__(root_dir=root_dir, sequence=sequence, transforms=transforms)
+        self.image_size = image_size
+        self.mean = [0.485, 0.456, 0.406]
+        self.std = [0.229, 0.224, 0.225]
+
     def __getitem__(self, index: Any) -> tuple[torch.Tensor, dict[str, torch.Tensor]]:
         frame_id = self.frames[index]
 
@@ -46,21 +59,34 @@ class CocoDataset(MOT15Dataset):
             labels.append(0)  # 0 represents "Pedestrian"
             track_ids.append(int(row["id"]))
 
+        box_tensor = (
+            torch.tensor(boxes, dtype=torch.float32)
+            if boxes
+            else torch.zeros((0, 4), dtype=torch.float32)
+        )
+        label_tensor = (
+            torch.tensor(labels, dtype=torch.int64)
+            if labels
+            else torch.zeros((0,), dtype=torch.int64)
+        )
+        track_id_tensor = (
+            torch.tensor(track_ids, dtype=torch.int64)
+            if track_ids
+            else torch.zeros((0,), dtype=torch.int64)
+        )
+
         target = {
-            "boxes": torch.tensor(boxes, dtype=torch.float32),
-            "labels": torch.tensor(labels, dtype=torch.int64),  # Added for DETR
-            "track_ids": torch.tensor(track_ids, dtype=torch.int64),
+            "boxes": box_tensor,
+            "labels": label_tensor,
+            "track_ids": track_id_tensor,
             "image_id": torch.tensor([frame_id]),
         }
 
+        image = torch.from_numpy(image).permute(2, 0, 1).float() / 255.0
+        image = F.resize(image, [self.image_size, self.image_size])
+        image = F.normalize(image, mean=self.mean, std=self.std)
+
         if self.transforms:
             image = self.transforms(image)
-
-        # DETR models expect images to be shape [Channels, Height, Width]
-        # OpenCV loads them as [Height, Width, Channels]. We permute it here.
-        image = torch.tensor(image, dtype=torch.float32).permute(2, 0, 1)
-
-        # Normalize image pixels from 0-255 to 0.0-1.0 (Standard DL practice)
-        image = image / 255.0
 
         return image, target

@@ -14,11 +14,14 @@ from objtracker.datasets.coco import CocoDataModule
 from objtracker.models.rf_detr import RFDETRLightning
 
 if __name__ == "__main__":
-    print("Initializing Data Pipeline...")
-    data_module = CocoDataModule(batch_size=4)
-
     print("Initializing Model...")
     model = RFDETRLightning(model_size="nano", lr=1e-4)
+
+    print("Initializing Data Pipeline...")
+    data_module = CocoDataModule(
+        batch_size=4,
+        image_size=model.model_context.resolution,
+    )
 
     print("Initializing Weights & Biases...")
     # Setup the WandB Logger
