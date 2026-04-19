@@ -27,6 +27,7 @@ dev = [
 [tool.pytest.ini_options]
 addopts = "--maxfail=1 --cov=src"
 pythonpath = ["src"]
+testpaths = ["tests"]
 
 
 [tool.ruff]
