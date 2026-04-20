@@ -33,13 +33,10 @@ class YOLOLightning(pl.LightningModule):
     
     def setup(self, stage=None):
         self.model.args = get_cfg(DEFAULT_CFG)
-        # Przenieś model tymczasowo na CPU, zainicjalizuj criterion (zostanie na CPU)
-        # Lightning przeniesie CAŁY self.model (wraz z criterion) na MPS przez .to(device)
         self.model.criterion = self.model.init_criterion()
 
     def on_train_start(self):
         self.model.train()
-        # Ręcznie zsynchronizuj device criterion z modelem
         device = self.device
         c = self.model.criterion
         c.device = device
@@ -48,7 +45,6 @@ class YOLOLightning(pl.LightningModule):
                 setattr(c, k, v.to(device))
             elif isinstance(v, torch.nn.Module):
                 v.to(device)
-        # stride jest trzymany osobno w Detect head — zsynchronizuj
         detect = self.model.model[-1]
         if hasattr(detect, 'stride') and detect.stride is not None:
             c.stride = detect.stride.to(device)
