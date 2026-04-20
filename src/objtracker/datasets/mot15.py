@@ -15,12 +15,10 @@ class MOT15DataModule(pl.LightningDataModule):
         self.dataset_repo = "mdraselsarker/mot15-challenge-dataset"
 
     def prepare_data(self):
-        """Download MOT15 to the local Kaggle cache if needed."""
         print("Checking Kaggle cache for MOT15...")
         kagglehub.dataset_download(self.dataset_repo)
 
     def setup(self, stage=None):
-        """Initialize datasets from the cached MOT15 archive."""
         cached_path = kagglehub.dataset_download(self.dataset_repo)
 
         base_dir = Path(cached_path)
@@ -33,7 +31,6 @@ class MOT15DataModule(pl.LightningDataModule):
             )
 
     def train_dataloader(self):
-        """Create the training data loader."""
         return DataLoader(
             self.train_dataset,
             batch_size=self.batch_size,
@@ -43,7 +40,6 @@ class MOT15DataModule(pl.LightningDataModule):
         )
 
     def transfer_batch_to_device(self, batch, device, dataloader_idx):
-        """Move NestedTensor samples and target tensors to the selected device."""
         samples, targets = batch
         samples = samples.to(device)
         targets = [{k: v.to(device) for k, v in t.items()} for t in targets]
