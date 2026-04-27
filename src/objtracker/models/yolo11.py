@@ -11,10 +11,10 @@ class YOLOLightning(pl.LightningModule):
         self.lr = lr
 
         size_map = {
-            "nano":   "n",
-            "small":  "s",
+            "nano": "n",
+            "small": "s",
             "medium": "m",
-            "large":  "l",
+            "large": "l",
             "xlarge": "x",
         }
         size = size_map[model_size]
@@ -30,7 +30,7 @@ class YOLOLightning(pl.LightningModule):
 
     def forward(self, images):
         return self.model(images)
-    
+
     def setup(self, stage=None):
         self.model.args = get_cfg(DEFAULT_CFG)
         self.model.criterion = self.model.init_criterion()
@@ -46,7 +46,7 @@ class YOLOLightning(pl.LightningModule):
             elif isinstance(v, torch.nn.Module):
                 v.to(device)
         detect = self.model.model[-1]
-        if hasattr(detect, 'stride') and detect.stride is not None:
+        if hasattr(detect, "stride") and detect.stride is not None:
             c.stride = detect.stride.to(device)
 
     def _criterion_to_device(self, device):
@@ -69,8 +69,8 @@ class YOLOLightning(pl.LightningModule):
         outputs = self.model(images)
         batch_dict = {
             "batch_idx": targets[:, 0],
-            "cls":       targets[:, 1],
-            "bboxes":    targets[:, 2:],
+            "cls": targets[:, 1],
+            "bboxes": targets[:, 2:],
         }
         loss, _ = self.model.criterion(outputs, batch_dict)
         return loss
@@ -82,11 +82,14 @@ class YOLOLightning(pl.LightningModule):
         loss = self._compute_loss(images, targets)
         total_loss = loss.sum()
 
-        self.log_dict({
-            "train_loss_box": loss[0],
-            "train_loss_cls": loss[1],
-            "train_loss_dfl": loss[2],
-        }, prog_bar=False)
+        self.log_dict(
+            {
+                "train_loss_box": loss[0],
+                "train_loss_cls": loss[1],
+                "train_loss_dfl": loss[2],
+            },
+            prog_bar=False,
+        )
         self.log("train_loss", total_loss, prog_bar=True)
         return total_loss
 
@@ -97,11 +100,14 @@ class YOLOLightning(pl.LightningModule):
         loss = self._compute_loss(images, targets)
         total_loss = loss.sum()
 
-        self.log_dict({
-            "val_loss_box": loss[0],
-            "val_loss_cls": loss[1],
-            "val_loss_dfl": loss[2],
-        }, prog_bar=False)
+        self.log_dict(
+            {
+                "val_loss_box": loss[0],
+                "val_loss_cls": loss[1],
+                "val_loss_dfl": loss[2],
+            },
+            prog_bar=False,
+        )
         self.log("val_loss", total_loss, prog_bar=True)
         return total_loss
 

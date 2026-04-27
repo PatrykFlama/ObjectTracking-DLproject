@@ -18,9 +18,15 @@ from objtracker.utils import build_tensorboard_logger, build_wandb_logger
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description="Train object detection model on MOT15")
+    parser = argparse.ArgumentParser(
+        description="Train object detection model on MOT15"
+    )
     parser.add_argument("--model", choices=["rfdetr", "yolo"], default="rfdetr")
-    parser.add_argument("--model-size", default="nano", help="nano/small/medium (rfdetr) or n/s/m/l/x (yolo)")
+    parser.add_argument(
+        "--model-size",
+        default="nano",
+        help="nano/small/medium (rfdetr) or n/s/m/l/x (yolo)",
+    )
     parser.add_argument("--lr", type=float, default=1e-4)
     parser.add_argument("--batch-size", type=int, default=4)
     parser.add_argument("--epochs", type=int, default=100)
@@ -49,7 +55,10 @@ if __name__ == "__main__":
 
     print("Initializing Weights & Biases...")
     project_name = "MOT15-Tracking"
-    run_name = f"{args.model.upper()}-{args.model_size}-baseline_" + datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    run_name = (
+        f"{args.model.upper()}-{args.model_size}-baseline_"
+        + datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    )
     wandb_logger = build_wandb_logger(
         project_root=project_root,
         project_name=project_name,
@@ -68,7 +77,7 @@ if __name__ == "__main__":
         accelerator="auto",
         log_every_n_steps=1,
         logger=[wandb_logger, tensorboard_logger],
-        num_sanity_val_steps = 0,
+        num_sanity_val_steps=0,
     )
 
-    trainer.fit(model, datamodule=data_module)  
+    trainer.fit(model, datamodule=data_module)
