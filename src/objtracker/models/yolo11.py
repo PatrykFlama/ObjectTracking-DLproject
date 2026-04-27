@@ -2,23 +2,59 @@ from typing import Any, cast
 
 import pytorch_lightning as pl
 import torch
+from pytorch_lightning.utilities.types import OptimizerLRScheduler
 from ultralytics import YOLO
 from ultralytics.cfg import get_cfg
 from ultralytics.utils import DEFAULT_CFG
 
+from objtracker.models.optim import (
+    OptimizerConfig,
+    configure_adamw_with_optional_scheduler,
+)
+
 
 class YOLOLightning(pl.LightningModule):
-    def __init__(self, model_size="nano", lr=1e-4, num_classes=1):
+    def __init__(
+        self,
+        model_size="nano",
+        lr=1e-4,
+        num_classes=1,
+        weight_decay=1e-4,
+        backbone_lr_mult=0.1,
+        scheduler="none",
+        warmup_steps=0,
+        warmup_ratio=0.05,
+        min_lr_ratio=0.05,
+        use_param_groups=True,
+    ):
         super().__init__()
-        self.lr = lr
+        self.save_hyperparameters()
+        self.optimizer_config = OptimizerConfig(
+            lr=lr,
+            weight_decay=weight_decay,
+            backbone_lr_mult=backbone_lr_mult,
+            scheduler=scheduler,
+            warmup_steps=warmup_steps,
+            warmup_ratio=warmup_ratio,
+            min_lr_ratio=min_lr_ratio,
+            use_param_groups=use_param_groups,
+        )
 
         size_map = {
+            "n": "n",
             "nano": "n",
+            "s": "s",
             "small": "s",
+            "m": "m",
             "medium": "m",
+            "l": "l",
             "large": "l",
+            "x": "x",
             "xlarge": "x",
         }
+        if model_size not in size_map:
+            msg = f"Unsupported YOLO model size: {model_size}"
+            raise ValueError(msg)
         size = size_map[model_size]
 
         yolo = YOLO(f"yolo11{size}.pt")
@@ -113,5 +149,9 @@ class YOLOLightning(pl.LightningModule):
         self.log("val_loss", total_loss, prog_bar=True)
         return total_loss
 
-    def configure_optimizers(self):
-        return torch.optim.AdamW(self.parameters(), lr=self.lr)
+    def configure_optimizers(self) -> OptimizerLRScheduler:
+        return configure_adamw_with_optional_scheduler(
+            self,
+            self.optimizer_config,
+            estimated_steps=getattr(self.trainer, "estimated_stepping_batches", None),
+        )
