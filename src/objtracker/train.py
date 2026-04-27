@@ -47,6 +47,9 @@ def parse_args():
     parser.add_argument("--accumulate-grad-batches", type=int, default=1)
     parser.add_argument("--batch-size", type=int, default=4)
     parser.add_argument("--epochs", type=int, default=100)
+    parser.add_argument("--seed", type=int, default=42)
+    parser.add_argument("--project-name", default="MOT15-Tracking")
+    parser.add_argument("--run-name", default=None)
     return parser.parse_args()
 
 
@@ -99,6 +102,7 @@ def build_optimizer_kwargs(args):
 
 if __name__ == "__main__":
     args = parse_args()
+    pl.seed_everything(args.seed, workers=True)
     project_root = Path(__file__).resolve().parents[2]
     optimizer_kwargs = build_optimizer_kwargs(args)
 
@@ -127,8 +131,8 @@ if __name__ == "__main__":
     print("Initializing Data Pipeline...")
 
     print("Initializing Weights & Biases...")
-    project_name = "MOT15-Tracking"
-    run_name = (
+    project_name = args.project_name
+    run_name = args.run_name or (
         f"{args.model.upper()}-{args.model_size}-{args.training_profile}_"
         + datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     )

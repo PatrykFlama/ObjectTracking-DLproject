@@ -1,0 +1,32 @@
+[defaults]
+seed = 42
+epochs = 20
+batch_size = 4
+lr = 1.0e-4
+project_name = "MOT15-Model-Improvements"
+
+[[runs]]
+name = "yolo_n_baseline"
+model = "yolo"
+model_size = "n"
+training_profile = "baseline"
+
+[[runs]]
+name = "yolo_n_tuned"
+model = "yolo"
+model_size = "n"
+training_profile = "tuned"
+gradient_clip_val = 1.0
+
+[[runs]]
+name = "rfdetr_nano_baseline"
+model = "rfdetr"
+model_size = "nano"
+training_profile = "baseline"
+
+[[runs]]
+name = "rfdetr_nano_tuned"
+model = "rfdetr"
+model_size = "nano"
+training_profile = "tuned"
+gradient_clip_val = 1.0
