@@ -8,7 +8,7 @@ from PIL import Image
 from torch.utils.data import Dataset
 
 
-class MOT15Dataset(Dataset[tuple[torch.Tensor, dict[str, torch.Tensor]]]):
+class MOT15FrameDataset[SampleT](Dataset[SampleT]):
     def __init__(self, root_dir, sequence, transforms=None):
         self.root_dir = root_dir
         self.sequence = sequence
@@ -39,6 +39,8 @@ class MOT15Dataset(Dataset[tuple[torch.Tensor, dict[str, torch.Tensor]]]):
     def __len__(self):
         return len(self.frames)
 
+
+class MOT15Dataset(MOT15FrameDataset[tuple[torch.Tensor, dict[str, torch.Tensor]]]):
     def __getitem__(self, index: Any) -> tuple[torch.Tensor, dict[str, torch.Tensor]]:
         frame_id = self.frames[index]
 

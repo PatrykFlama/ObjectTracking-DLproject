@@ -6,10 +6,10 @@ import torch
 from PIL import Image
 from torchvision.transforms import functional as F
 
-from objtracker.datasets.mot15_dataset import MOT15Dataset
+from objtracker.datasets.mot15_dataset import MOT15FrameDataset
 
 
-class YoloDataset(MOT15Dataset):
+class YoloDataset(MOT15FrameDataset[tuple[torch.Tensor, torch.Tensor]]):
     def __init__(
         self,
         root_dir: str,
