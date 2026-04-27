@@ -1,3 +1,5 @@
+from typing import Any, cast
+
 import pytorch_lightning as pl
 import torch
 from ultralytics import YOLO
@@ -20,7 +22,7 @@ class YOLOLightning(pl.LightningModule):
         size = size_map[model_size]
 
         yolo = YOLO(f"yolo11{size}.pt")
-        self.model = yolo.model
+        self.model = cast("Any", yolo.model)
         self.model.nc = num_classes
 
         for param in self.model.parameters():
