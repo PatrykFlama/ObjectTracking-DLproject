@@ -49,6 +49,7 @@ coverage.xml
 # Misc
 *.log
 *.pth
+*.pt
 artifacts/
 examples/
 wandb/
