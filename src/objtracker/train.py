@@ -2,6 +2,7 @@ import argparse
 import sys
 from datetime import datetime
 from pathlib import Path
+from types import SimpleNamespace
 
 if __package__ is None or __package__ == "":
     src_root = Path(__file__).resolve().parents[1]
@@ -15,6 +16,25 @@ from objtracker.datasets.yolo import YoloDataModule
 from objtracker.models.rf_detr import RFDETRLightning
 from objtracker.models.yolo11 import YOLOLightning
 from objtracker.utils import build_tensorboard_logger, build_wandb_logger
+
+TRAINING_PROFILE_DEFAULTS = {
+    "baseline": {
+        "weight_decay": 0.0,
+        "backbone_lr_mult": 1.0,
+        "scheduler": "none",
+        "warmup_ratio": 0.0,
+        "min_lr_ratio": 1.0,
+        "use_param_groups": False,
+    },
+    "tuned": {
+        "weight_decay": 1e-4,
+        "backbone_lr_mult": 0.1,
+        "scheduler": "cosine",
+        "warmup_ratio": 0.05,
+        "min_lr_ratio": 0.05,
+        "use_param_groups": True,
+    },
+}
 
 
 def parse_args():
@@ -54,24 +74,7 @@ def parse_args():
 
 
 def build_optimizer_kwargs(args):
-    defaults = {
-        "baseline": {
-            "weight_decay": 0.0,
-            "backbone_lr_mult": 1.0,
-            "scheduler": "none",
-            "warmup_ratio": 0.0,
-            "min_lr_ratio": 1.0,
-            "use_param_groups": False,
-        },
-        "tuned": {
-            "weight_decay": 1e-4,
-            "backbone_lr_mult": 0.1,
-            "scheduler": "cosine",
-            "warmup_ratio": 0.05,
-            "min_lr_ratio": 0.05,
-            "use_param_groups": True,
-        },
-    }[args.training_profile]
+    defaults = TRAINING_PROFILE_DEFAULTS[args.training_profile]
 
     return {
         "weight_decay": (
@@ -100,10 +103,7 @@ def build_optimizer_kwargs(args):
     }
 
 
-if __name__ == "__main__":
-    args = parse_args()
-    pl.seed_everything(args.seed, workers=True)
-    project_root = Path(__file__).resolve().parents[2]
+def build_model_and_data(args):
     optimizer_kwargs = build_optimizer_kwargs(args)
 
     print("Initializing Model...")
@@ -127,36 +127,67 @@ if __name__ == "__main__":
             batch_size=args.batch_size,
             image_size=640,
         )
+    else:
+        msg = f"Unsupported model: {args.model}"
+        raise ValueError(msg)
 
-    print("Initializing Data Pipeline...")
+    return model, data_module
 
-    print("Initializing Weights & Biases...")
-    project_name = args.project_name
-    run_name = args.run_name or (
+
+def build_run_name(args):
+    return args.run_name or (
         f"{args.model.upper()}-{args.model_size}-{args.training_profile}_"
         + datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     )
+
+
+def build_loggers(args, project_root: Path, run_name: str):
+    print("Initializing Data Pipeline...")
+
+    print("Initializing Weights & Biases...")
     wandb_logger = build_wandb_logger(
         project_root=project_root,
-        project_name=project_name,
+        project_name=args.project_name,
         run_name=run_name,
         log_model="all",
     )
     tensorboard_logger = build_tensorboard_logger(
         project_root=project_root,
-        project_name=project_name,
+        project_name=args.project_name,
         run_name=run_name,
     )
+    return [wandb_logger, tensorboard_logger]
 
+
+def build_trainer(args, loggers):
     print("Starting Lightning Trainer...")
-    trainer = pl.Trainer(
+    return pl.Trainer(
         max_epochs=args.epochs,
         accelerator="auto",
         log_every_n_steps=1,
-        logger=[wandb_logger, tensorboard_logger],
+        logger=loggers,
         num_sanity_val_steps=0,
         gradient_clip_val=args.gradient_clip_val,
         accumulate_grad_batches=args.accumulate_grad_batches,
     )
 
+
+def train(args):
+    pl.seed_everything(args.seed, workers=True)
+    project_root = Path(__file__).resolve().parents[2]
+    model, data_module = build_model_and_data(args)
+    run_name = build_run_name(args)
+    loggers = build_loggers(args, project_root, run_name)
+    trainer = build_trainer(args, loggers)
     trainer.fit(model, datamodule=data_module)
+    return trainer
+
+
+def namespace_from_args(args, **overrides):
+    values = vars(args).copy()
+    values.update(overrides)
+    return SimpleNamespace(**values)
+
+
+if __name__ == "__main__":
+    train(parse_args())
