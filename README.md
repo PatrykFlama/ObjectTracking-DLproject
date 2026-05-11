@@ -10,6 +10,11 @@ uv sync
 uv run python src/objtracker/train.py
 ```
 
+## Optuna Search
+```bash
+uv run python src/objtracker/optuna_search.py --n-trials 20 --epochs 10
+```
+
 ## Test
 ```bash
 uv run pytest

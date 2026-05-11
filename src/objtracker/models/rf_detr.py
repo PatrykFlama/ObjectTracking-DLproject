@@ -3,19 +3,49 @@ from typing import cast
 import pytorch_lightning as pl
 import rfdetr as rfd
 import torch
+from pytorch_lightning.utilities.types import OptimizerLRScheduler
 from rfdetr.models.lwdetr import build_criterion_and_postprocessors
+
+from objtracker.models.optim import (
+    OptimizerConfig,
+    configure_adamw_with_optional_scheduler,
+)
 
 
 class RFDETRLightning(pl.LightningModule):
-    def __init__(self, model_size="nano", lr=1e-4):
+    def __init__(
+        self,
+        model_size="nano",
+        lr=1e-4,
+        weight_decay=1e-4,
+        backbone_lr_mult=0.1,
+        scheduler="none",
+        warmup_steps=0,
+        warmup_ratio=0.05,
+        min_lr_ratio=0.05,
+        use_param_groups=True,
+    ):
         super().__init__()
-        self.lr = lr
+        self.save_hyperparameters()
+        self.optimizer_config = OptimizerConfig(
+            lr=lr,
+            weight_decay=weight_decay,
+            backbone_lr_mult=backbone_lr_mult,
+            scheduler=scheduler,
+            warmup_steps=warmup_steps,
+            warmup_ratio=warmup_ratio,
+            min_lr_ratio=min_lr_ratio,
+            use_param_groups=use_param_groups,
+        )
 
         models = {
             "nano": rfd.RFDETRNano,
             "small": rfd.RFDETRSmall,
             "medium": rfd.RFDETRMedium,
         }
+        if model_size not in models:
+            msg = f"Unsupported RF-DETR model size: {model_size}"
+            raise ValueError(msg)
         self.rfdetr_model = models[model_size]()
 
         self.model_context = self.rfdetr_model.model
@@ -54,5 +84,9 @@ class RFDETRLightning(pl.LightningModule):
         self.log("val_loss", total_loss, prog_bar=True)
         return total_loss
 
-    def configure_optimizers(self):
-        return torch.optim.AdamW(self.parameters(), lr=self.lr)
+    def configure_optimizers(self) -> OptimizerLRScheduler:
+        return configure_adamw_with_optional_scheduler(
+            self,
+            self.optimizer_config,
+            estimated_steps=getattr(self.trainer, "estimated_stepping_batches", None),
+        )
