@@ -24,8 +24,8 @@ class RFDETRLightning(pl.LightningModule):
         warmup_ratio=0.05,
         min_lr_ratio=0.05,
         use_param_groups=True,
-        resolution=640,  # ~~~
-        num_classes=1,  # ~~~
+        resolution=640,
+        num_classes=1,
     ):
         super().__init__()
         self.save_hyperparameters()
@@ -49,8 +49,8 @@ class RFDETRLightning(pl.LightningModule):
             msg = f"Unsupported RF-DETR model size: {model_size}"
             raise ValueError(msg)
         self.rfdetr_model = models[model_size](
-            resolution=resolution,  # ~~~
-            num_classes=num_classes,  # ~~~
+            resolution=resolution,
+            num_classes=num_classes,
         )
 
         self.model_context = self.rfdetr_model.model
