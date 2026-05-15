@@ -21,6 +21,7 @@ from objtracker.models.yolo11 import YOLOLightning
 
 def draw_boxes(image_path, boxes, output_path, color=(0, 0, 255)):
     img = cv2.imread(str(image_path))
+    assert img is not None, f"Image not found at {image_path}"
     for box in boxes:
         x1, y1, x2, y2 = map(int, box)
         cv2.rectangle(img, (x1, y1), (x2, y2), color, 2)
@@ -43,7 +44,7 @@ def main():
         print("Loading PyTorch Lightning checkpoint...")
         pl_model = YOLOLightning.load_from_checkpoint(args.weights, map_location="cpu")
         model = YOLO("yolo11n.pt")
-        model.model.load_state_dict(pl_model.model.state_dict())
+        model.model.load_state_dict(pl_model.model.state_dict())  # type: ignore
 
         print("Running Inference...")
         results = model.predict(args.image, conf=args.conf)
@@ -60,6 +61,7 @@ def main():
 
         print("Running Inference...")
         original_image = cv2.imread(args.image)
+        assert original_image is not None, f"Image not found: {args.image}"
         orig_h, orig_w = original_image.shape[:2]
 
         img_rgb = np.array(Image.open(args.image).convert("RGB"))

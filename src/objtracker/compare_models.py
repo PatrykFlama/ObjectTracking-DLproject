@@ -92,7 +92,7 @@ def main():
         "artifacts/yolo_n_tuned.ckpt", map_location="cpu"
     )
     yolo_model = YOLO("yolo11n.pt")
-    yolo_model.model.load_state_dict(yolo_pl.model.state_dict())
+    yolo_model.model.load_state_dict(yolo_pl.model.state_dict())  # type: ignore
 
     rfdetr_model = RFDETRLightning.load_from_checkpoint(
         "artifacts/rfdetr_nano_tuned.ckpt", map_location="cpu"
@@ -124,9 +124,9 @@ def main():
             str(frame_path), conf=conf_threshold, verbose=False
         )[0]
         yolo_preds = []
-        if len(yolo_res.boxes) > 0:
-            boxes = yolo_res.boxes.xyxy.cpu().numpy()
-            confs = yolo_res.boxes.conf.cpu().numpy()
+        if yolo_res.boxes is not None and len(yolo_res.boxes) > 0:  # type: ignore
+            boxes = yolo_res.boxes.xyxy.cpu().numpy()  # type: ignore
+            confs = yolo_res.boxes.conf.cpu().numpy()  # type: ignore
             for b, c in zip(boxes, confs):
                 yolo_preds.append([b[0], b[1], b[2], b[3], c])
 

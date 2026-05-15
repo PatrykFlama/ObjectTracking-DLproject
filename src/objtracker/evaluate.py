@@ -55,10 +55,10 @@ def evaluate_yolo(checkpoint_path):
                     }
                 )
 
-            metric.update(preds, target_list)
+            metric.update(preds, target_list)  # type: ignore
 
     print("\nCalculating Final mAP...")
-    result = metric.compute()
+    result = metric.compute()  # type: ignore
     print(f"mAP (Mean Average Precision): {result['map'].item():.4f}")
     print(f"mAP @ 50% IoU: {result['map_50'].item():.4f}")
 
