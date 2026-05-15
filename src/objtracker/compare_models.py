@@ -70,8 +70,6 @@ def main():
     img_dir = sequence_path / "img1"
     gt_file = sequence_path / "gt/gt.txt"
 
-    # Load Ground Truth
-    # MOT15 format: frame, id, bb_left, bb_top, bb_width, bb_height, conf, x, y, z
     gt_df = pd.read_csv(
         gt_file,
         header=None,
@@ -90,7 +88,6 @@ def main():
     )
 
     print("Loading Models to CPU...")
-    # Load YOLO
     yolo_pl = YOLOLightning.load_from_checkpoint(
         "artifacts/yolo_n_tuned.ckpt", map_location="cpu"
     )
@@ -102,7 +99,7 @@ def main():
     )
     rfdetr_model.eval()
 
-    frames = sorted([f for f in img_dir.glob("*.jpg")])
+    frames = sorted(img_dir.glob("*.jpg"))
     conf_threshold = 0.4
 
     results = {
