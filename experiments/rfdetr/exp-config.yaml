@@ -1,13 +1,9 @@
 seed: 42
-output_dir: "/Users/piotrek/ObjectTracking-DLproject/src/experiments/rfdetr/rfdetr-run"
 dataset:
-  dir: "/Users/piotrek/ObjectTracking-DLproject/dataset"
   split_ratios:
     train: 0.7
     val: 0.2
     test: 0.1
-
-training:
 
 wandb:
   project: "objtracker-rfdetr"
