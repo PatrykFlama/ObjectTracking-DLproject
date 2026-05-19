@@ -9,7 +9,7 @@ from torchvision.transforms import functional as F
 from tqdm import tqdm
 
 if __package__ is None or __package__ == "":
-    src_root = Path(__file__).resolve().parents[1]
+    src_root = Path(__file__).resolve().parents[2]
     if str(src_root) not in sys.path:
         sys.path.insert(0, str(src_root))
 
@@ -89,13 +89,13 @@ def main():
 
     print("Loading Models to CPU...")
     yolo_pl = YOLOLightning.load_from_checkpoint(
-        "artifacts/yolo_n_tuned.ckpt", map_location="cpu"
+        "artifacts/checkpoints/yolo_n_tuned.ckpt", map_location="cpu"
     )
-    yolo_model = YOLO("yolo11n.pt")
+    yolo_model = YOLO("artifacts/checkpoints/yolo11n.pt")
     yolo_model.model.load_state_dict(yolo_pl.model.state_dict())  # type: ignore
 
     rfdetr_model = RFDETRLightning.load_from_checkpoint(
-        "artifacts/rfdetr_nano_tuned.ckpt", map_location="cpu"
+        "artifacts/checkpoints/rfdetr_nano_tuned.ckpt", map_location="cpu"
     )
     rfdetr_model.eval()
 

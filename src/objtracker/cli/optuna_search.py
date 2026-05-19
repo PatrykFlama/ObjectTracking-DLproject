@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 if __package__ is None or __package__ == "":
-    src_root = Path(__file__).resolve().parents[1]
+    src_root = Path(__file__).resolve().parents[2]
     if str(src_root) not in sys.path:
         sys.path.insert(0, str(src_root))
 
@@ -15,7 +15,7 @@ import pytorch_lightning as pl
 from pytorch_lightning.callbacks import EarlyStopping
 from pytorch_lightning.loggers import TensorBoardLogger
 
-from objtracker.train import build_model_and_data, namespace_from_args
+from objtracker.cli.train import build_model_and_data, namespace_from_args
 
 if TYPE_CHECKING:
     from argparse import Namespace

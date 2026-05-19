@@ -9,7 +9,7 @@ from PIL import Image
 from torchvision.transforms import functional as F
 
 if __package__ is None or __package__ == "":
-    src_root = Path(__file__).resolve().parents[1]
+    src_root = Path(__file__).resolve().parents[2]
     if str(src_root) not in sys.path:
         sys.path.insert(0, str(src_root))
 
@@ -37,13 +37,13 @@ def main():
     parser.add_argument("--conf", type=float, default=0.4, help="Confidence threshold")
     args = parser.parse_args()
 
-    out_path = Path("artifacts") / f"{args.model}_pred_{Path(args.image).name}"
+    out_path = Path("artifacts/outputs") / f"{args.model}_pred_{Path(args.image).name}"
     out_path.parent.mkdir(exist_ok=True)
 
     if args.model == "yolo":
         print("Loading PyTorch Lightning checkpoint...")
         pl_model = YOLOLightning.load_from_checkpoint(args.weights, map_location="cpu")
-        model = YOLO("yolo11n.pt")
+        model = YOLO("artifacts/checkpoints/yolo11n.pt")
         model.model.load_state_dict(pl_model.model.state_dict())  # type: ignore
 
         print("Running Inference...")
