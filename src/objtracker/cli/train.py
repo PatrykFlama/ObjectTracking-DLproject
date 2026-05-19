@@ -5,7 +5,7 @@ from pathlib import Path
 from types import SimpleNamespace
 
 if __package__ is None or __package__ == "":
-    src_root = Path(__file__).resolve().parents[1]
+    src_root = Path(__file__).resolve().parents[2]
     if str(src_root) not in sys.path:
         sys.path.insert(0, str(src_root))
 
@@ -174,7 +174,7 @@ def build_trainer(args, loggers):
 
 def train(args):
     pl.seed_everything(args.seed, workers=True)
-    project_root = Path(__file__).resolve().parents[2]
+    project_root = Path(__file__).resolve().parents[3]
     model, data_module = build_model_and_data(args)
     run_name = build_run_name(args)
     loggers = build_loggers(args, project_root, run_name)
@@ -189,5 +189,9 @@ def namespace_from_args(args, **overrides):
     return SimpleNamespace(**values)
 
 
-if __name__ == "__main__":
+def main():
     train(parse_args())
+
+
+if __name__ == "__main__":
+    main()

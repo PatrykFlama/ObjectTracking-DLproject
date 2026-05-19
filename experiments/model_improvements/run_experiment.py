@@ -10,7 +10,7 @@ from typing import Any
 
 EXPERIMENT_DIR = Path(__file__).resolve().parent
 PROJECT_ROOT = EXPERIMENT_DIR.parents[1]
-TRAIN_SCRIPT = PROJECT_ROOT / "src" / "objtracker" / "train.py"
+TRAIN_MODULE = "objtracker.cli.train"
 
 CLI_FLAGS = {
     key: f"--{key.replace('_', '-')}"
@@ -53,7 +53,7 @@ def materialize_runs(config: dict[str, Any]) -> list[dict[str, Any]]:
 
 
 def build_train_command(run: dict[str, Any]) -> list[str]:
-    command = [sys.executable, str(TRAIN_SCRIPT)]
+    command = [sys.executable, "-m", TRAIN_MODULE]
     for key, flag in CLI_FLAGS.items():
         if key in run:
             command.extend([flag, str(run[key])])

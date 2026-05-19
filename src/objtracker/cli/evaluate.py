@@ -5,7 +5,7 @@ import torch
 from tqdm import tqdm
 
 if __package__ is None or __package__ == "":
-    src_root = Path(__file__).resolve().parents[1]
+    src_root = Path(__file__).resolve().parents[2]
     if str(src_root) not in sys.path:
         sys.path.insert(0, str(src_root))
 
@@ -13,6 +13,7 @@ from torchmetrics.detection.mean_ap import MeanAveragePrecision
 
 from objtracker.datasets.yolo import YoloDataModule
 from objtracker.models.yolo11 import YOLOLightning
+from objtracker.paths import CHECKPOINTS_DIR
 
 
 def evaluate_yolo(checkpoint_path):
@@ -63,5 +64,9 @@ def evaluate_yolo(checkpoint_path):
     print(f"mAP @ 50% IoU: {result['map_50'].item():.4f}")
 
 
+def main():
+    evaluate_yolo(CHECKPOINTS_DIR / "yolo_n_tuned.ckpt")
+
+
 if __name__ == "__main__":
-    evaluate_yolo("artifacts/yolo_n_tuned.ckpt")
+    main()

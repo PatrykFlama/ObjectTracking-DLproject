@@ -19,6 +19,20 @@ dependencies = [
     "wandb>=0.26.0",
 ]
 
+[project.scripts]
+objtracker-compare-models = "objtracker.cli.compare_models:main"
+objtracker-evaluate = "objtracker.cli.evaluate:main"
+objtracker-optuna = "objtracker.cli.optuna_search:main"
+objtracker-train = "objtracker.cli.train:main"
+objtracker-visualize = "objtracker.cli.visualize:main"
+
+[build-system]
+requires = ["setuptools>=80"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
 [dependency-groups]
 dev = [
     "ty",
