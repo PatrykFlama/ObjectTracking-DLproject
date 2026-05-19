@@ -1,20 +1,39 @@
 from __future__ import annotations
 
+import importlib
 from argparse import Namespace
+from pathlib import Path
 from types import SimpleNamespace
 from typing import TYPE_CHECKING
 
 import pandas as pd
 
-from objtracker.paths import CHECKPOINTS_DIR, OUTPUTS_DIR, PROJECT_ROOT
+from objtracker.paths import ARTIFACTS_DIR, CHECKPOINTS_DIR, OUTPUTS_DIR
 
 if TYPE_CHECKING:
     import pytest
 
 
-def test_artifact_paths_are_project_root_relative() -> None:
-    assert CHECKPOINTS_DIR == PROJECT_ROOT / "artifacts" / "checkpoints"
-    assert OUTPUTS_DIR == PROJECT_ROOT / "artifacts" / "outputs"
+def test_artifact_paths_default_to_current_working_directory() -> None:
+    assert Path.cwd() / "artifacts" == ARTIFACTS_DIR
+    assert CHECKPOINTS_DIR == ARTIFACTS_DIR / "checkpoints"
+    assert OUTPUTS_DIR == ARTIFACTS_DIR / "outputs"
+
+
+def test_artifact_paths_support_environment_override(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    import objtracker.paths as paths
+
+    monkeypatch.setenv("OBJTRACKER_ARTIFACTS_DIR", str(tmp_path / "custom"))
+    reloaded_paths = importlib.reload(paths)
+
+    assert tmp_path / "custom" == reloaded_paths.ARTIFACTS_DIR
+    assert tmp_path / "custom" / "checkpoints" == reloaded_paths.CHECKPOINTS_DIR
+
+    monkeypatch.delenv("OBJTRACKER_ARTIFACTS_DIR")
+    importlib.reload(reloaded_paths)
 
 
 def test_train_main_dispatches_to_train(monkeypatch: pytest.MonkeyPatch) -> None:
