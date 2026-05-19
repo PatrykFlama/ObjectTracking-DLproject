@@ -6,7 +6,15 @@ from pytorch_lightning.utilities.types import OptimizerLRScheduler
 from ultralytics import YOLO
 from ultralytics.cfg import get_cfg
 from ultralytics.utils import DEFAULT_CFG
+from ultralytics.utils.nms import non_max_suppression
 
+from objtracker.metrics.mean_average_precision import (
+    build_mean_average_precision,
+    compute_mean_average_precision,
+    update_mean_average_precision,
+    yolo_detections_to_map_predictions,
+    yolo_targets_to_map_targets,
+)
 from objtracker.models.optim import (
     OptimizerConfig,
     configure_adamw_with_optional_scheduler,
@@ -30,6 +38,7 @@ class YOLOLightning(pl.LightningModule):
     ):
         super().__init__()
         self.save_hyperparameters()
+        self.num_classes = num_classes
         self.optimizer_config = OptimizerConfig(
             lr=lr,
             weight_decay=weight_decay,
@@ -68,6 +77,7 @@ class YOLOLightning(pl.LightningModule):
             param.requires_grad = True
 
         self.model.train()
+        self.val_map = build_mean_average_precision(box_format="xyxy")
 
     def forward(self, images):
         return self.model(images)
@@ -116,6 +126,23 @@ class YOLOLightning(pl.LightningModule):
         loss, _ = self.model.criterion(outputs, batch_dict)
         return loss
 
+    def _validation_map_predictions(self, images):
+        was_training = self.model.training
+        self.model.eval()
+        try:
+            outputs = self.model(images)
+            detections = non_max_suppression(
+                outputs,
+                conf_thres=0.001,
+                iou_thres=0.7,
+                agnostic=self.num_classes == 1,
+                max_det=300,
+            )
+        finally:
+            self.model.train(was_training)
+
+        return yolo_detections_to_map_predictions(detections, self.num_classes)
+
     def training_step(self, batch, batch_idx):
         images, targets = batch
         self.model.train()
@@ -150,7 +177,22 @@ class YOLOLightning(pl.LightningModule):
             prog_bar=False,
         )
         self.log("val_loss", total_loss, prog_bar=True)
+        update_mean_average_precision(
+            self.val_map,
+            self._validation_map_predictions(images),
+            yolo_targets_to_map_targets(
+                targets,
+                len(images),
+                tuple(images.shape[-2:]),
+            ),
+        )
         return total_loss
+
+    def on_validation_epoch_end(self):
+        result = compute_mean_average_precision(self.val_map)
+        self.log("val_map", result["map"], prog_bar=False, sync_dist=True)
+        self.log("val_map_50", result["map_50"], prog_bar=True, sync_dist=True)
+        self.val_map.reset()
 
     def configure_optimizers(self) -> OptimizerLRScheduler:
         return configure_adamw_with_optional_scheduler(

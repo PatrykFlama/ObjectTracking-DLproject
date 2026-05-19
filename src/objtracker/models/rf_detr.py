@@ -6,6 +6,13 @@ import torch
 from pytorch_lightning.utilities.types import OptimizerLRScheduler
 from rfdetr.models.lwdetr import build_criterion_and_postprocessors
 
+from objtracker.metrics.mean_average_precision import (
+    build_mean_average_precision,
+    compute_mean_average_precision,
+    rfdetr_outputs_to_map_predictions,
+    rfdetr_targets_to_map_targets,
+    update_mean_average_precision,
+)
 from objtracker.models.optim import (
     OptimizerConfig,
     configure_adamw_with_optional_scheduler,
@@ -29,6 +36,7 @@ class RFDETRLightning(pl.LightningModule):
     ):
         super().__init__()
         self.save_hyperparameters()
+        self.num_classes = num_classes
         self.optimizer_config = OptimizerConfig(
             lr=lr,
             weight_decay=weight_decay,
@@ -56,12 +64,12 @@ class RFDETRLightning(pl.LightningModule):
         self.model_context = self.rfdetr_model.model
         self.model = self.model_context.model
         self.criterion, _ = build_criterion_and_postprocessors(self.model_context.args)
+        self.val_map = build_mean_average_precision(box_format="cxcywh")
 
     def forward(self, images):
         return self.model(images)
 
-    def _compute_loss(self, images, targets):
-        outputs = self.model(images, targets)
+    def _loss_from_outputs(self, outputs, targets):
         loss_dict = self.criterion(outputs, targets)
         if not isinstance(loss_dict, dict):
             msg = "Expected model to return a dict of loss tensors"
@@ -77,6 +85,10 @@ class RFDETRLightning(pl.LightningModule):
             raise RuntimeError(msg)
         return torch.stack(cast("list[torch.Tensor]", loss_values)).sum()
 
+    def _compute_loss(self, images, targets):
+        outputs = self.model(images, targets)
+        return self._loss_from_outputs(outputs, targets)
+
     def training_step(self, batch: tuple, batch_idx: int) -> torch.Tensor:
         images, targets = batch
         total_loss = self._compute_loss(images, targets)
@@ -85,9 +97,21 @@ class RFDETRLightning(pl.LightningModule):
 
     def validation_step(self, batch: tuple, batch_idx: int) -> torch.Tensor:
         images, targets = batch
-        total_loss = self._compute_loss(images, targets)
+        outputs = self.model(images, targets)
+        total_loss = self._loss_from_outputs(outputs, targets)
         self.log("val_loss", total_loss, prog_bar=True)
+        update_mean_average_precision(
+            self.val_map,
+            rfdetr_outputs_to_map_predictions(outputs, self.num_classes),
+            rfdetr_targets_to_map_targets(targets),
+        )
         return total_loss
+
+    def on_validation_epoch_end(self):
+        result = compute_mean_average_precision(self.val_map)
+        self.log("val_map", result["map"], prog_bar=False, sync_dist=True)
+        self.log("val_map_50", result["map_50"], prog_bar=True, sync_dist=True)
+        self.val_map.reset()
 
     def configure_optimizers(self) -> OptimizerLRScheduler:
         return configure_adamw_with_optional_scheduler(
