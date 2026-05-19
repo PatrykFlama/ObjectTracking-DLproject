@@ -3,12 +3,18 @@ from typing import Any, cast
 import pytorch_lightning as pl
 import torch
 from pytorch_lightning.utilities.types import OptimizerLRScheduler
-from torchmetrics.detection.mean_ap import MeanAveragePrecision
 from ultralytics import YOLO
 from ultralytics.cfg import get_cfg
 from ultralytics.utils import DEFAULT_CFG
 from ultralytics.utils.nms import non_max_suppression
 
+from objtracker.metrics.mean_average_precision import (
+    build_mean_average_precision,
+    compute_mean_average_precision,
+    update_mean_average_precision,
+    yolo_detections_to_map_predictions,
+    yolo_targets_to_map_targets,
+)
 from objtracker.models.optim import (
     OptimizerConfig,
     configure_adamw_with_optional_scheduler,
@@ -71,10 +77,7 @@ class YOLOLightning(pl.LightningModule):
             param.requires_grad = True
 
         self.model.train()
-        self.val_map: MeanAveragePrecision = MeanAveragePrecision(
-            box_format="xyxy",
-            iou_type="bbox",
-        )
+        self.val_map = build_mean_average_precision(box_format="xyxy")
 
     def forward(self, images):
         return self.model(images)
@@ -138,50 +141,7 @@ class YOLOLightning(pl.LightningModule):
         finally:
             self.model.train(was_training)
 
-        map_predictions = []
-        for detection in detections:
-            labels = detection[:, 5].long()
-            if self.num_classes == 1:
-                labels = torch.zeros(
-                    len(detection),
-                    dtype=torch.long,
-                    device=detection.device,
-                )
-            map_predictions.append(
-                {
-                    "boxes": detection[:, :4],
-                    "scores": detection[:, 4],
-                    "labels": labels,
-                }
-            )
-        return map_predictions
-
-    def _validation_map_targets(self, targets, batch_size, image_size):
-        image_height, image_width = image_size
-        scale = targets.new_tensor(
-            [image_width, image_height, image_width, image_height]
-        )
-        map_targets = []
-
-        for image_idx in range(batch_size):
-            image_targets = targets[targets[:, 0].long() == image_idx]
-            boxes = image_targets[:, 2:] * scale
-            if boxes.numel() > 0:
-                cx, cy, width, height = boxes.unbind(dim=-1)
-                boxes = torch.stack(
-                    (
-                        cx - width / 2,
-                        cy - height / 2,
-                        cx + width / 2,
-                        cy + height / 2,
-                    ),
-                    dim=-1,
-                )
-            else:
-                boxes = targets.new_zeros((0, 4))
-            map_targets.append({"boxes": boxes, "labels": image_targets[:, 1].long()})
-
-        return map_targets
+        return yolo_detections_to_map_predictions(detections, self.num_classes)
 
     def training_step(self, batch, batch_idx):
         images, targets = batch
@@ -217,9 +177,10 @@ class YOLOLightning(pl.LightningModule):
             prog_bar=False,
         )
         self.log("val_loss", total_loss, prog_bar=True)
-        self.val_map.update(
+        update_mean_average_precision(
+            self.val_map,
             self._validation_map_predictions(images),
-            self._validation_map_targets(
+            yolo_targets_to_map_targets(
                 targets,
                 len(images),
                 tuple(images.shape[-2:]),
@@ -228,7 +189,7 @@ class YOLOLightning(pl.LightningModule):
         return total_loss
 
     def on_validation_epoch_end(self):
-        result = cast("Any", self.val_map).compute()
+        result = compute_mean_average_precision(self.val_map)
         self.log("val_map", result["map"], prog_bar=False, sync_dist=True)
         self.log("val_map_50", result["map_50"], prog_bar=True, sync_dist=True)
         self.val_map.reset()

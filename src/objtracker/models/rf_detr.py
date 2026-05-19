@@ -1,12 +1,18 @@
-from typing import Any, cast
+from typing import cast
 
 import pytorch_lightning as pl
 import rfdetr as rfd
 import torch
 from pytorch_lightning.utilities.types import OptimizerLRScheduler
 from rfdetr.models.lwdetr import build_criterion_and_postprocessors
-from torchmetrics.detection.mean_ap import MeanAveragePrecision
 
+from objtracker.metrics.mean_average_precision import (
+    build_mean_average_precision,
+    compute_mean_average_precision,
+    rfdetr_outputs_to_map_predictions,
+    rfdetr_targets_to_map_targets,
+    update_mean_average_precision,
+)
 from objtracker.models.optim import (
     OptimizerConfig,
     configure_adamw_with_optional_scheduler,
@@ -58,10 +64,7 @@ class RFDETRLightning(pl.LightningModule):
         self.model_context = self.rfdetr_model.model
         self.model = self.model_context.model
         self.criterion, _ = build_criterion_and_postprocessors(self.model_context.args)
-        self.val_map: MeanAveragePrecision = MeanAveragePrecision(
-            box_format="cxcywh",
-            iou_type="bbox",
-        )
+        self.val_map = build_mean_average_precision(box_format="cxcywh")
 
     def forward(self, images):
         return self.model(images)
@@ -86,31 +89,6 @@ class RFDETRLightning(pl.LightningModule):
         outputs = self.model(images, targets)
         return self._loss_from_outputs(outputs, targets)
 
-    def _validation_map_predictions(self, outputs):
-        scores, labels = outputs["pred_logits"].sigmoid().max(dim=-1)
-        if self.num_classes == 1:
-            labels = torch.zeros_like(labels)
-
-        return [
-            {
-                "boxes": boxes,
-                "scores": image_scores,
-                "labels": image_labels.long(),
-            }
-            for boxes, image_scores, image_labels in zip(
-                outputs["pred_boxes"], scores, labels
-            )
-        ]
-
-    def _validation_map_targets(self, targets):
-        return [
-            {
-                "boxes": target["boxes"],
-                "labels": target["labels"].long(),
-            }
-            for target in targets
-        ]
-
     def training_step(self, batch: tuple, batch_idx: int) -> torch.Tensor:
         images, targets = batch
         total_loss = self._compute_loss(images, targets)
@@ -122,14 +100,15 @@ class RFDETRLightning(pl.LightningModule):
         outputs = self.model(images, targets)
         total_loss = self._loss_from_outputs(outputs, targets)
         self.log("val_loss", total_loss, prog_bar=True)
-        self.val_map.update(
-            self._validation_map_predictions(outputs),
-            self._validation_map_targets(targets),
+        update_mean_average_precision(
+            self.val_map,
+            rfdetr_outputs_to_map_predictions(outputs, self.num_classes),
+            rfdetr_targets_to_map_targets(targets),
         )
         return total_loss
 
     def on_validation_epoch_end(self):
-        result = cast("Any", self.val_map).compute()
+        result = compute_mean_average_precision(self.val_map)
         self.log("val_map", result["map"], prog_bar=False, sync_dist=True)
         self.log("val_map_50", result["map_50"], prog_bar=True, sync_dist=True)
         self.val_map.reset()
