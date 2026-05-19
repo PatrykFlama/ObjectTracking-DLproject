@@ -125,7 +125,7 @@ def main():
             str(frame_path), conf=conf_threshold, verbose=False
         )[0]
         yolo_preds = []
-        if yolo_res.boxes is not None and len(yolo_res.boxes) > 0:  # type: ignore
+        if yolo_res.boxes is not None and len(yolo_res.boxes) > 0:
             boxes = yolo_res.boxes.xyxy.cpu().numpy()  # type: ignore
             confs = yolo_res.boxes.conf.cpu().numpy()  # type: ignore
             for b, c in zip(boxes, confs):
