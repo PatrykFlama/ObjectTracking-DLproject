@@ -11,6 +11,7 @@ from objtracker.models.optim import (
     OptimizerConfig,
     configure_adamw_with_optional_scheduler,
 )
+from objtracker.paths import CHECKPOINTS_DIR
 
 
 class YOLOLightning(pl.LightningModule):
@@ -57,7 +58,9 @@ class YOLOLightning(pl.LightningModule):
             raise ValueError(msg)
         size = size_map[model_size]
 
-        yolo = YOLO(f"yolo11{size}.pt")
+        weights_name = f"yolo11{size}.pt"
+        weights_path = CHECKPOINTS_DIR / weights_name
+        yolo = YOLO(str(weights_path if weights_path.exists() else weights_name))
         self.model = cast("Any", yolo.model)
         self.model.nc = num_classes
 

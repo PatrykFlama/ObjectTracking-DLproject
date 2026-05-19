@@ -13,6 +13,7 @@ from torchmetrics.detection.mean_ap import MeanAveragePrecision
 
 from objtracker.datasets.yolo import YoloDataModule
 from objtracker.models.yolo11 import YOLOLightning
+from objtracker.paths import CHECKPOINTS_DIR
 
 
 def evaluate_yolo(checkpoint_path):
@@ -64,7 +65,7 @@ def evaluate_yolo(checkpoint_path):
 
 
 def main():
-    evaluate_yolo("artifacts/checkpoints/yolo_n_tuned.ckpt")
+    evaluate_yolo(CHECKPOINTS_DIR / "yolo_n_tuned.ckpt")
 
 
 if __name__ == "__main__":

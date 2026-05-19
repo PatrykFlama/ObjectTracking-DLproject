@@ -17,6 +17,7 @@ from ultralytics import YOLO
 
 from objtracker.models.rf_detr import RFDETRLightning
 from objtracker.models.yolo11 import YOLOLightning
+from objtracker.paths import CHECKPOINTS_DIR
 
 
 def calculate_iou(box1, box2):
@@ -89,13 +90,13 @@ def main():
 
     print("Loading Models to CPU...")
     yolo_pl = YOLOLightning.load_from_checkpoint(
-        "artifacts/checkpoints/yolo_n_tuned.ckpt", map_location="cpu"
+        CHECKPOINTS_DIR / "yolo_n_tuned.ckpt", map_location="cpu"
     )
-    yolo_model = YOLO("artifacts/checkpoints/yolo11n.pt")
+    yolo_model = YOLO(str(CHECKPOINTS_DIR / "yolo11n.pt"))
     yolo_model.model.load_state_dict(yolo_pl.model.state_dict())  # type: ignore
 
     rfdetr_model = RFDETRLightning.load_from_checkpoint(
-        "artifacts/checkpoints/rfdetr_nano_tuned.ckpt", map_location="cpu"
+        CHECKPOINTS_DIR / "rfdetr_nano_tuned.ckpt", map_location="cpu"
     )
     rfdetr_model.eval()
 

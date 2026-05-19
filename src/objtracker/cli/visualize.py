@@ -17,6 +17,7 @@ from ultralytics import YOLO
 
 from objtracker.models.rf_detr import RFDETRLightning
 from objtracker.models.yolo11 import YOLOLightning
+from objtracker.paths import CHECKPOINTS_DIR, OUTPUTS_DIR
 
 
 def draw_boxes(image_path, boxes, output_path, color=(0, 0, 255)):
@@ -37,13 +38,13 @@ def main():
     parser.add_argument("--conf", type=float, default=0.4, help="Confidence threshold")
     args = parser.parse_args()
 
-    out_path = Path("artifacts/outputs") / f"{args.model}_pred_{Path(args.image).name}"
+    out_path = OUTPUTS_DIR / f"{args.model}_pred_{Path(args.image).name}"
     out_path.parent.mkdir(exist_ok=True)
 
     if args.model == "yolo":
         print("Loading PyTorch Lightning checkpoint...")
         pl_model = YOLOLightning.load_from_checkpoint(args.weights, map_location="cpu")
-        model = YOLO("artifacts/checkpoints/yolo11n.pt")
+        model = YOLO(str(CHECKPOINTS_DIR / "yolo11n.pt"))
         model.model.load_state_dict(pl_model.model.state_dict())  # type: ignore
 
         print("Running Inference...")
