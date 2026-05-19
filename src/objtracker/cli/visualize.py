@@ -39,7 +39,7 @@ def main():
     args = parser.parse_args()
 
     out_path = OUTPUTS_DIR / f"{args.model}_pred_{Path(args.image).name}"
-    out_path.parent.mkdir(exist_ok=True)
+    out_path.parent.mkdir(parents=True, exist_ok=True)
 
     if args.model == "yolo":
         print("Loading PyTorch Lightning checkpoint...")
