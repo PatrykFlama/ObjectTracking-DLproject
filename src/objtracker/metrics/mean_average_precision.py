@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING, cast
 import torch
 from torch import Tensor
 from torchmetrics.detection.mean_ap import MeanAveragePrecision
+from ultralytics.utils.nms import non_max_suppression
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -52,6 +53,20 @@ def yolo_detections_to_map_predictions(
         )
 
     return map_predictions
+
+
+def yolo_outputs_to_map_predictions(
+    outputs: Any,
+    num_classes: int,
+) -> list[dict[str, Tensor]]:
+    detections = non_max_suppression(
+        outputs,
+        conf_thres=0.001,
+        iou_thres=0.7,
+        agnostic=num_classes == 1,
+        max_det=300,
+    )
+    return yolo_detections_to_map_predictions(detections, num_classes)
 
 
 def yolo_targets_to_map_targets(
