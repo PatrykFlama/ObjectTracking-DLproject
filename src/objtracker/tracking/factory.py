@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
 
+from objtracker.tracking.bot_sort_track import BoTSORTTrack, BoTSORTTrackConfig
 from objtracker.tracking.byte_track import ByteTrack, ByteTrackConfig
 
 if TYPE_CHECKING:
@@ -16,6 +17,7 @@ class TrackerRegistration:
 
 
 TRACKERS = {
+    "botsort": TrackerRegistration(BoTSORTTrack, BoTSORTTrackConfig),
     "bytetrack": TrackerRegistration(ByteTrack, ByteTrackConfig),
 }
 

@@ -22,9 +22,9 @@ uv run pytest
 
 ## Tracking
 ```python
-from objtracker.tracking import ByteTrack, Detections
+from objtracker.tracking import Detections, build_tracker
 
-tracker = ByteTrack()
+tracker = build_tracker("bytetrack")  # or "botsort"
 tracks = tracker.update(
     Detections(
         boxes=boxes_xyxy,
