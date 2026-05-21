@@ -62,6 +62,7 @@ def test_registered_tracker_accepts_prediction_mapping(tracker_name: str) -> Non
         if tracks:
             break
 
+    assert tracks, f"{tracker_name} did not produce tracks from prediction mapping"
     assert tracks[0].box.dtype == torch.float64
     assert tracks[0].box.device == prediction["boxes"].device
 
