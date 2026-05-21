@@ -34,10 +34,12 @@ class YOLOLightning(pl.LightningModule):
         warmup_ratio=0.05,
         min_lr_ratio=0.05,
         use_param_groups=True,
+        confidence_threshold=0.4,
     ):
         super().__init__()
         self.save_hyperparameters()
         self.num_classes = num_classes
+        self.confidence_threshold = confidence_threshold
         self.optimizer_config = OptimizerConfig(
             lr=lr,
             weight_decay=weight_decay,
@@ -68,8 +70,8 @@ class YOLOLightning(pl.LightningModule):
 
         weights_name = f"yolo11{size}.pt"
         weights_path = CHECKPOINTS_DIR / weights_name
-        yolo = YOLO(str(weights_path if weights_path.exists() else weights_name))
-        self.model = cast("Any", yolo.model)
+        self.yolo = YOLO(str(weights_path if weights_path.exists() else weights_name))
+        self.model = cast("Any", self.yolo.model)
         self.model.nc = num_classes
 
         for param in self.model.parameters():
@@ -80,6 +82,30 @@ class YOLOLightning(pl.LightningModule):
 
     def forward(self, images):
         return self.model(images)
+
+    def detect(self, frame: Any):
+        from objtracker.tracking.types import Detections
+
+        result = cast(
+            "Any",
+            self.yolo.predict(
+                frame,
+                conf=self.confidence_threshold,
+                verbose=False,
+            )[0],
+        )
+        boxes = result.boxes
+        if boxes is None or len(boxes) == 0:
+            return Detections(
+                boxes=torch.empty((0, 4), device=self.device),
+                scores=torch.empty(0, device=self.device),
+            )
+
+        return Detections(
+            boxes=boxes.xyxy.to(device=self.device),
+            scores=boxes.conf.to(device=self.device),
+            labels=boxes.cls.to(device=self.device, dtype=torch.long),
+        )
 
     def setup(self, stage=None):
         self.model.args = get_cfg(DEFAULT_CFG)

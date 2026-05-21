@@ -22,6 +22,26 @@ def to_supervision_detections(detections: Detections) -> Any:
     )
 
 
+def from_supervision_detections(
+    detections: Any,
+    *,
+    device: torch.device | None = None,
+    dtype: torch.dtype = torch.float32,
+) -> Detections:
+    boxes = torch.as_tensor(detections.xyxy, dtype=dtype, device=device).reshape(-1, 4)
+    scores = (
+        torch.ones(len(boxes), dtype=dtype, device=device)
+        if detections.confidence is None
+        else torch.as_tensor(detections.confidence, dtype=dtype, device=device)
+    )
+    labels = (
+        None
+        if detections.class_id is None
+        else torch.as_tensor(detections.class_id, dtype=torch.long, device=device)
+    )
+    return Detections(boxes=boxes, scores=scores, labels=labels)
+
+
 def to_tracks(
     detections: Any,
     *,
