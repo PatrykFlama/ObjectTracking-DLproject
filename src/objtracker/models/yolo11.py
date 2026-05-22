@@ -6,13 +6,12 @@ from pytorch_lightning.utilities.types import OptimizerLRScheduler
 from ultralytics import YOLO
 from ultralytics.cfg import get_cfg
 from ultralytics.utils import DEFAULT_CFG
-from ultralytics.utils.nms import non_max_suppression
 
 from objtracker.metrics.mean_average_precision import (
     build_mean_average_precision,
     compute_mean_average_precision,
     update_mean_average_precision,
-    yolo_detections_to_map_predictions,
+    yolo_outputs_to_map_predictions,
     yolo_targets_to_map_targets,
 )
 from objtracker.models.optim import (
@@ -116,32 +115,22 @@ class YOLOLightning(pl.LightningModule):
     def on_train_epoch_start(self):
         self.model.train()
 
-    def _compute_loss(self, images, targets):
-        outputs = self.model(images)
-        batch_dict = {
+    def _batch_dict(self, targets):
+        return {
             "batch_idx": targets[:, 0],
             "cls": targets[:, 1],
             "bboxes": targets[:, 2:],
         }
-        loss, _ = self.model.criterion(outputs, batch_dict)
+
+    def _loss_from_outputs(self, outputs, targets):
+        loss, _ = self.model.criterion(outputs, self._batch_dict(targets))
         return loss
 
-    def _validation_map_predictions(self, images):
-        was_training = self.model.training
-        self.model.eval()
-        try:
-            outputs = self.model(images)
-            detections = non_max_suppression(
-                outputs,
-                conf_thres=0.001,
-                iou_thres=0.7,
-                agnostic=self.num_classes == 1,
-                max_det=300,
-            )
-        finally:
-            self.model.train(was_training)
+    def _compute_loss(self, images, targets):
+        return self._loss_from_outputs(self.model(images), targets)
 
-        return yolo_detections_to_map_predictions(detections, self.num_classes)
+    def _validation_map_predictions(self, outputs):
+        return yolo_outputs_to_map_predictions(outputs, self.num_classes)
 
     def training_step(self, batch, batch_idx):
         images, targets = batch
@@ -163,9 +152,10 @@ class YOLOLightning(pl.LightningModule):
 
     def validation_step(self, batch, batch_idx):
         images, targets = batch
-        self.model.train()
+        self.model.eval()
 
-        loss = self._compute_loss(images, targets)
+        outputs = self.model(images)
+        loss = self._loss_from_outputs(outputs, targets)
         total_loss = loss.sum()
 
         self.log_dict(
@@ -179,7 +169,7 @@ class YOLOLightning(pl.LightningModule):
         self.log("val_loss", total_loss, prog_bar=True)
         update_mean_average_precision(
             self.val_map,
-            self._validation_map_predictions(images),
+            self._validation_map_predictions(outputs),
             yolo_targets_to_map_targets(
                 targets,
                 len(images),
