@@ -1556,6 +1556,7 @@ dependencies = [
     { name = "tensorboard" },
     { name = "torch" },
     { name = "torchmetrics" },
+    { name = "trackers" },
     { name = "ultralytics" },
     { name = "wandb" },
 ]
@@ -1581,6 +1582,7 @@ requires-dist = [
     { name = "tensorboard", specifier = ">=2.20.0" },
     { name = "torch", specifier = ">=2.10.0" },
     { name = "torchmetrics", specifier = ">=1.9.0" },
+    { name = "trackers", specifier = ">=2.4.0" },
     { name = "ultralytics", specifier = ">=8.4.41" },
     { name = "wandb", specifier = ">=0.26.0" },
 ]
@@ -2733,6 +2735,23 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/09/a9/6ba95a270c6f1fbcd8dac228323f2777d886cb206987444e4bce66338dd4/tqdm-4.67.3.tar.gz", hash = "sha256:7d825f03f89244ef73f1d4ce193cb1774a8179fd96f31d7e1dcde62092b960bb", size = 169598, upload-time = "2026-02-03T17:35:53.048Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/16/e1/3079a9ff9b8e11b846c6ac5c8b5bfb7ff225eee721825310c91b3b50304f/tqdm-4.67.3-py3-none-any.whl", hash = "sha256:ee1e4c0e59148062281c49d80b25b67771a127c85fc9676d3be5f243206826bf", size = 78374, upload-time = "2026-02-03T17:35:50.982Z" },
+]
+
+[[package]]
+name = "trackers"
+version = "2.4.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "numpy" },
+    { name = "opencv-python" },
+    { name = "requests" },
+    { name = "rich" },
+    { name = "scipy" },
+    { name = "supervision" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/01/d7/ef7a223be4ce81bddbf1023f2dcbe5f7317ad35df85d8af2fa9e54f20ae3/trackers-2.4.0.tar.gz", hash = "sha256:0839394bae9dea68fb23effce844644d351e76ba780cce385421a5206bcf78f6", size = 424364, upload-time = "2026-05-06T21:11:38.558Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/9d/3c/29594d8e24f0520df876373c470270bf141b060efc9757e9c37b70780ebe/trackers-2.4.0-py3-none-any.whl", hash = "sha256:0d5981c1c39196a43f2dc3b3f7c331e8d62594cd1ab6024aae7288f24e24e893", size = 126400, upload-time = "2026-05-06T21:11:37.178Z" },
 ]
 
 [[package]]

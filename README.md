@@ -20,6 +20,20 @@ uv run objtracker-optuna --n-trials 20 --epochs 10
 uv run pytest
 ```
 
+## Tracking
+```python
+from objtracker.tracking import Detections, build_tracker
+
+tracker = build_tracker("bytetrack")  # or "botsort"
+tracks = tracker.update(
+    Detections(
+        boxes=boxes_xyxy,
+        scores=confidence_scores,
+        labels=class_labels,
+    )
+)
+```
+
 ## Build
 ```bash
 uv build
