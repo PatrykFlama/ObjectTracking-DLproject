@@ -22,16 +22,15 @@ uv run pytest
 
 ## Tracking
 ```python
-from objtracker.tracking import Detections, build_tracker
+from objtracker.models import build_detector
+from objtracker.pipeline import TrackingPipeline
+from objtracker.tracking import build_tracker
 
-tracker = build_tracker("bytetrack")  # or "botsort"
-tracks = tracker.update(
-    Detections(
-        boxes=boxes_xyxy,
-        scores=confidence_scores,
-        labels=class_labels,
-    )
+pipeline = TrackingPipeline(
+    detector=build_detector("yolo"),  # or "rfdetr"
+    tracker=build_tracker("bytetrack"),  # or "botsort"
 )
+result = pipeline.update(frame)
 ```
 
 ## Build

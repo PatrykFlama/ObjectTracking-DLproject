@@ -33,10 +33,12 @@ class RFDETRLightning(pl.LightningModule):
         use_param_groups=True,
         resolution=640,
         num_classes=1,
+        confidence_threshold=0.5,
     ):
         super().__init__()
         self.save_hyperparameters()
         self.num_classes = num_classes
+        self.confidence_threshold = confidence_threshold
         self.optimizer_config = OptimizerConfig(
             lr=lr,
             weight_decay=weight_decay,
@@ -68,6 +70,20 @@ class RFDETRLightning(pl.LightningModule):
 
     def forward(self, images):
         return self.model(images)
+
+    def detect(self, frame):
+        from objtracker.tracking.supervision_adapter import from_supervision_detections
+
+        detections = self.rfdetr_model.predict(
+            frame,
+            threshold=self.confidence_threshold,
+        )
+        if isinstance(detections, list):
+            if len(detections) != 1:
+                msg = "RFDETRLightning.detect expects one frame"
+                raise ValueError(msg)
+            detections = detections[0]
+        return from_supervision_detections(detections, device=self.device)
 
     def _loss_from_outputs(self, outputs, targets):
         loss_dict = self.criterion(outputs, targets)
