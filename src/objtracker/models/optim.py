@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from math import cos, pi
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import torch
 from torch import nn
@@ -26,6 +26,8 @@ class OptimizerConfig:
     warmup_steps: int = 0
     warmup_ratio: float = 0.05
     min_lr_ratio: float = 0.05
+    optimizer: str = "adamw"
+    momentum: float = 0.9
 
 
 def _is_no_decay_param(name: str, param: nn.Parameter) -> bool:
@@ -37,16 +39,12 @@ def _is_backbone_param(name: str) -> bool:
     return any(key in lower_name for key in ("backbone", "encoder", "stem"))
 
 
-def build_adamw_optimizer(
+def _build_param_groups(
     module: nn.Module,
     config: OptimizerConfig,
-) -> torch.optim.AdamW:
+) -> list[nn.Parameter] | list[dict[str, Any]]:
     if not config.use_param_groups:
-        return torch.optim.AdamW(
-            module.parameters(),
-            lr=config.lr,
-            weight_decay=config.weight_decay,
-        )
+        return list(module.parameters())
 
     groups: dict[tuple[float, float], list[nn.Parameter]] = {}
     for name, param in module.named_parameters():
@@ -60,14 +58,47 @@ def build_adamw_optimizer(
         weight_decay = 0.0 if _is_no_decay_param(name, param) else config.weight_decay
         groups.setdefault((lr, weight_decay), []).append(param)
 
+    return [
+        {"params": params, "lr": lr, "weight_decay": weight_decay}
+        for (lr, weight_decay), params in groups.items()
+    ]
+
+
+def build_adamw_optimizer(
+    module: nn.Module,
+    config: OptimizerConfig,
+) -> torch.optim.AdamW:
     return torch.optim.AdamW(
-        [
-            {"params": params, "lr": lr, "weight_decay": weight_decay}
-            for (lr, weight_decay), params in groups.items()
-        ],
+        _build_param_groups(module, config),
         lr=config.lr,
         weight_decay=config.weight_decay,
     )
+
+
+def build_optimizer(
+    module: nn.Module, config: OptimizerConfig
+) -> torch.optim.Optimizer:
+    params = _build_param_groups(module, config)
+    wd = config.weight_decay
+    match config.optimizer:
+        case "adamw":
+            return torch.optim.AdamW(params, lr=config.lr, weight_decay=wd)
+        case "adam":
+            return torch.optim.Adam(params, lr=config.lr, weight_decay=wd)
+        case "sgd":
+            return torch.optim.SGD(
+                params, lr=config.lr, momentum=config.momentum, weight_decay=wd
+            )
+        case "rmsprop":
+            return torch.optim.RMSprop(
+                params, lr=config.lr, momentum=config.momentum, weight_decay=wd
+            )
+        case _:
+            msg = (
+                f"Unsupported optimizer: {config.optimizer!r}. "
+                "Choose from: adamw, adam, sgd, rmsprop"
+            )
+            raise ValueError(msg)
 
 
 def build_warmup_cosine_scheduler(
@@ -95,12 +126,12 @@ def build_warmup_cosine_scheduler(
     return LambdaLR(optimizer, lr_lambda=lr_lambda)
 
 
-def configure_adamw_with_optional_scheduler(
+def configure_optimizer_with_optional_scheduler(
     module: nn.Module,
     config: OptimizerConfig,
     estimated_steps: int | None,
 ) -> OptimizerLRScheduler:
-    optimizer = build_adamw_optimizer(module, config)
+    optimizer = build_optimizer(module, config)
     if config.scheduler == "none":
         return optimizer
     if config.scheduler != "cosine":
