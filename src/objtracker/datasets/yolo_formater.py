@@ -9,6 +9,16 @@ from torchvision.transforms import functional as F
 from objtracker.datasets.mot15_dataset import MOT15FrameDataset
 
 
+class GaussianNoise:
+    """Adds Gaussian noise to a float tensor image in [0, 1]."""
+
+    def __init__(self, std: float = 0.05) -> None:
+        self.std = std
+
+    def __call__(self, image: torch.Tensor) -> torch.Tensor:
+        return (image + torch.randn_like(image) * self.std).clamp(0.0, 1.0)
+
+
 class YoloDataset(MOT15FrameDataset[tuple[torch.Tensor, torch.Tensor]]):
     def __init__(
         self,

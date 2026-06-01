@@ -63,6 +63,17 @@ def parse_args():
             "and cosine warmup"
         ),
     )
+    parser.add_argument(
+        "--optimizer",
+        choices=["adamw", "adam", "sgd", "rmsprop"],
+        default="adamw",
+    )
+    parser.add_argument(
+        "--momentum",
+        type=float,
+        default=0.9,
+        help="Momentum for SGD / RMSprop (ignored for Adam / AdamW)",
+    )
     parser.add_argument("--gradient-clip-val", type=float, default=None)
     parser.add_argument("--accumulate-grad-batches", type=int, default=1)
     parser.add_argument("--batch-size", type=int, default=4)
@@ -100,6 +111,8 @@ def build_optimizer_kwargs(args):
             else defaults["min_lr_ratio"]
         ),
         "use_param_groups": defaults["use_param_groups"],
+        "optimizer": args.optimizer,
+        "momentum": args.momentum,
     }
 
 

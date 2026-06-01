@@ -1,3 +1,6 @@
+from __future__ import annotations
+
+import argparse
 import sys
 from pathlib import Path
 
@@ -16,13 +19,15 @@ from objtracker.models.yolo11 import YOLOLightning
 from objtracker.paths import CHECKPOINTS_DIR
 
 
-def evaluate_yolo(checkpoint_path):
+def evaluate_yolo(checkpoint_path, noise_std: float = 0.0):
     print("Loading YOLO Model & Data...")
+    if noise_std > 0.0:
+        print(f"Gaussian noise enabled: std={noise_std:.4f}")
 
     model = YOLOLightning.load_from_checkpoint(checkpoint_path, map_location="cpu")
     model.eval()
 
-    datamodule = YoloDataModule(batch_size=4)
+    datamodule = YoloDataModule(batch_size=4, val_noise_std=noise_std)
     datamodule.setup()
     val_loader = datamodule.val_dataloader()
 
@@ -62,10 +67,35 @@ def evaluate_yolo(checkpoint_path):
     result = metric.compute()  # type: ignore
     print(f"mAP (Mean Average Precision): {result['map'].item():.4f}")
     print(f"mAP @ 50% IoU: {result['map_50'].item():.4f}")
+    return result
+
+
+def parse_args():
+    parser = argparse.ArgumentParser(
+        description="Evaluate a trained YOLO model on the validation set"
+    )
+    parser.add_argument(
+        "--checkpoint",
+        type=Path,
+        default=None,
+        help="Path to .ckpt file (defaults to CHECKPOINTS_DIR/yolo_n_tuned.ckpt)",
+    )
+    parser.add_argument(
+        "--noise-std",
+        type=float,
+        default=0.0,
+        help=(
+            "Standard deviation of Gaussian noise added to validation images "
+            "(0 = no noise). Typical range: 0.01–0.15."
+        ),
+    )
+    return parser.parse_args()
 
 
 def main():
-    evaluate_yolo(CHECKPOINTS_DIR / "yolo_n_tuned.ckpt")
+    args = parse_args()
+    checkpoint = args.checkpoint or CHECKPOINTS_DIR / "yolo_n_tuned.ckpt"
+    evaluate_yolo(checkpoint, noise_std=args.noise_std)
 
 
 if __name__ == "__main__":

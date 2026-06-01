@@ -15,7 +15,7 @@ from objtracker.metrics.mean_average_precision import (
 )
 from objtracker.models.optim import (
     OptimizerConfig,
-    configure_adamw_with_optional_scheduler,
+    configure_optimizer_with_optional_scheduler,
 )
 
 
@@ -34,6 +34,8 @@ class RFDETRLightning(pl.LightningModule):
         resolution=640,
         num_classes=1,
         confidence_threshold=0.5,
+        optimizer="adamw",
+        momentum=0.9,
     ):
         super().__init__()
         self.save_hyperparameters()
@@ -48,6 +50,8 @@ class RFDETRLightning(pl.LightningModule):
             warmup_ratio=warmup_ratio,
             min_lr_ratio=min_lr_ratio,
             use_param_groups=use_param_groups,
+            optimizer=optimizer,
+            momentum=momentum,
         )
 
         models = {
@@ -130,7 +134,7 @@ class RFDETRLightning(pl.LightningModule):
         self.val_map.reset()
 
     def configure_optimizers(self) -> OptimizerLRScheduler:
-        return configure_adamw_with_optional_scheduler(
+        return configure_optimizer_with_optional_scheduler(
             self,
             self.optimizer_config,
             estimated_steps=getattr(self.trainer, "estimated_stepping_batches", None),
