@@ -52,6 +52,11 @@ def parse_args() -> Namespace:
 
 
 def suggest_optimizer_kwargs(trial: optuna.Trial, training_profile: str) -> dict:
+    optimizer = trial.suggest_categorical(
+        "optimizer", ["adamw", "adam", "sgd", "rmsprop"]
+    )
+    momentum = trial.suggest_float("momentum", 0.5, 0.99)
+
     scheduler = trial.suggest_categorical("scheduler", ["none", "cosine"])
     warmup_ratio = 0.0
     min_lr_ratio = 1.0
@@ -60,6 +65,8 @@ def suggest_optimizer_kwargs(trial: optuna.Trial, training_profile: str) -> dict
         min_lr_ratio = trial.suggest_float("min_lr_ratio", 0.01, 0.25, log=True)
 
     return {
+        "optimizer": optimizer,
+        "momentum": momentum,
         "lr": trial.suggest_float("lr", 1e-6, 1e-3, log=True),
         "weight_decay": trial.suggest_float(
             "weight_decay",

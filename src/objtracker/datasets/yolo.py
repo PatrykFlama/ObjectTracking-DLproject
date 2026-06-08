@@ -4,7 +4,11 @@ import kagglehub
 from torch.utils.data import ConcatDataset, DataLoader
 
 from objtracker.datasets.mot15 import MOT15DataModule
-from objtracker.datasets.yolo_formater import YoloDataset, yolo_collate_fn
+from objtracker.datasets.yolo_formater import (
+    GaussianNoise,
+    YoloDataset,
+    yolo_collate_fn,
+)
 
 # MOT15 train sequences split into train / val
 TRAIN_SEQUENCES = [
@@ -18,9 +22,12 @@ VAL_SEQUENCES = ["ADL-Rundle-8", "ETH-Sunnyday", "KITTI-13"]
 
 
 class YoloDataModule(MOT15DataModule):
-    def __init__(self, batch_size: int = 4, image_size: int = 640):
+    def __init__(
+        self, batch_size: int = 4, image_size: int = 640, val_noise_std: float = 0.0
+    ):
         super().__init__(batch_size=batch_size)
         self.image_size = image_size
+        self.val_noise_std = val_noise_std
 
     def setup(self, stage=None):
         cached_path = kagglehub.dataset_download(self.dataset_repo)
@@ -41,12 +48,16 @@ class YoloDataModule(MOT15DataModule):
                     if (train_path / seq).exists()
                 ]
             )
+            val_transform = (
+                GaussianNoise(self.val_noise_std) if self.val_noise_std > 0.0 else None
+            )
             self.val_dataset = ConcatDataset(
                 [
                     YoloDataset(
                         root_dir=str(train_path),
                         sequence=seq,
                         image_size=self.image_size,
+                        transforms=val_transform,
                     )
                     for seq in VAL_SEQUENCES
                     if (train_path / seq).exists()

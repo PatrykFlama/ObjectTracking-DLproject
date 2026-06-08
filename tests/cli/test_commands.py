@@ -86,10 +86,13 @@ def test_optuna_main_uses_parsed_search_settings(
 def test_evaluate_main_uses_checkpoint_artifact_path(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    import sys
+
     from objtracker.cli import evaluate
 
     calls = []
-    monkeypatch.setattr(evaluate, "evaluate_yolo", calls.append)
+    monkeypatch.setattr(evaluate, "evaluate_yolo", lambda path, **_: calls.append(path))
+    monkeypatch.setattr(sys, "argv", ["evaluate"])
 
     evaluate.main()
 
