@@ -87,6 +87,7 @@ def test_evaluate_main_uses_checkpoint_artifact_path(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     import sys
+
     from objtracker.cli import evaluate
 
     calls = []
