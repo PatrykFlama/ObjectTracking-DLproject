@@ -91,7 +91,7 @@ def test_evaluate_main_uses_checkpoint_artifact_path(
     from objtracker.cli import evaluate
 
     calls = []
-    monkeypatch.setattr(evaluate, "evaluate_yolo", calls.append)
+    monkeypatch.setattr(evaluate, "evaluate_yolo", lambda path, **_: calls.append(path))
     monkeypatch.setattr(sys, "argv", ["evaluate"])
 
     evaluate.main()
