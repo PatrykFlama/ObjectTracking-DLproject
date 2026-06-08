@@ -53,3 +53,4 @@ coverage.xml
 artifacts/
 examples/
 wandb/
+dataset/
