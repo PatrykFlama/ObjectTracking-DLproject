@@ -55,15 +55,17 @@ def main():
         return
 
     first_frame = cv2.imread(str(frames[0]))
+    assert first_frame is not None, f"Failed to load image: {frames[0]}"
     height, width = first_frame.shape[:2]
 
-    fourcc = cv2.VideoWriter_fourcc(*"mp4v")
+    fourcc = cv2.VideoWriter_fourcc(*"mp4v")  # type: ignore
     out_video = cv2.VideoWriter(args.output, fourcc, 30.0, (width, height))
 
     print(f"Processing {len(frames)} frames...")
 
     for frame_path in tqdm(frames):
         frame = cv2.imread(str(frame_path))
+        assert frame is not None, f"Failed to load image: {frame_path}"
 
         pipeline_result = pipeline.update(frame)
 
