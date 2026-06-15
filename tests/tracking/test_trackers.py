@@ -77,9 +77,9 @@ def test_registered_tracker_reset_clears_state(tracker_name: str) -> None:
     tracker = build_tracker(tracker_name, **TRACKER_KWARGS[tracker_name])
     dummy_frame = np.zeros((100, 100, 3), dtype=np.uint8)
 
-    assert tracker.update(_detections([[0, 0, 10, 10]], [0.9])) or tracker.update(
-        _detections([[0, 0, 10, 10]], [0.9], frame=dummy_frame)
-    )
+    assert tracker.update(
+        _detections([[0, 0, 10, 10]], [0.9]), frame=dummy_frame
+    ) or tracker.update(_detections([[0, 0, 10, 10]], [0.9], frame=dummy_frame))
 
     tracker.reset()
 
