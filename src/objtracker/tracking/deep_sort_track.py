@@ -42,7 +42,6 @@ class DeepSORTTrack:
 
         self.config = config or DeepSORTTrackConfig()
 
-        # Initialize the DeepSORT tracker with the built-in CNN embedder
         self._tracker = DeepSort(**self.config.__dict__)
 
     def reset(self) -> None:
@@ -59,7 +58,6 @@ class DeepSORTTrack:
 
         frame_detections = as_detections(detections)
 
-        # 1. Extract PyTorch tensors to Numpy
         boxes = frame_detections.boxes.detach().cpu().numpy()
         scores = frame_detections.scores.detach().cpu().numpy()
         labels = (
@@ -68,7 +66,6 @@ class DeepSORTTrack:
             else [0] * len(boxes)
         )
 
-        # 2. Format for DeepSORT: ([left, top, w, h], confidence, class)
         raw_detections = []
         for box, score, label in zip(boxes, scores, labels):
             x1, y1, x2, y2 = box
@@ -76,23 +73,19 @@ class DeepSORTTrack:
             h = y2 - y1
             raw_detections.append(([x1, y1, w, h], float(score), int(label)))
 
-        # 3. Run the DeepSORT algorithm (crops images, creates embeddings, matches IDs)
         ds_tracks = self._tracker.update_tracks(raw_detections, frame=frame)
 
-        # 4. Convert back to your project's Track format
         out_tracks = []
         device = frame_detections.boxes.device
         dtype = frame_detections.boxes.dtype
 
         for track in ds_tracks:
-            # Only return tracks that have been seen consistently
             if not track.is_confirmed():
                 continue
 
             track_id = int(track.track_id)
-            ltrb = track.to_ltrb()  # Returns [x1, y1, x2, y2]
+            ltrb = track.to_ltrb()
 
-            # Handle potential None values safely
             label = track.det_class if track.det_class is not None else 0
             score = track.det_conf if track.det_conf is not None else 0.0
 
