@@ -79,7 +79,7 @@ def test_registered_tracker_reset_clears_state(tracker_name: str) -> None:
 
     assert tracker.update(
         _detections([[0, 0, 10, 10]], [0.9]), frame=dummy_frame
-    ) or tracker.update(_detections([[0, 0, 10, 10]], [0.9], frame=dummy_frame))
+    ) or tracker.update(_detections([[0, 0, 10, 10]], [0.9]), frame=dummy_frame)
 
     tracker.reset()
 
