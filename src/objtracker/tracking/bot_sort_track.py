@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Literal
+from typing import TYPE_CHECKING, Any, Literal
 
 from objtracker.tracking.supervision_adapter import to_supervision_detections, to_tracks
 from objtracker.tracking.types import Detections, Track, as_detections
@@ -42,7 +42,9 @@ class BoTSORTTrack:
     def reset(self) -> None:
         self._tracker.reset()
 
-    def update(self, detections: Detections | Mapping[str, Tensor]) -> list[Track]:
+    def update(
+        self, detections: Detections | Mapping[str, Tensor], frame: Any | None = None
+    ) -> list[Track]:
         frame_detections = as_detections(detections)
         tracked_detections = self._tracker.update(
             to_supervision_detections(frame_detections)

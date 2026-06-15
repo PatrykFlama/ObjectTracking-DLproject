@@ -31,5 +31,5 @@ class TrackingPipeline:
         detections = self.detect(frame)
         return PipelineResult(
             detections=detections,
-            tracks=self.tracker.update(detections),
+            tracks=self.tracker.update(detections, frame=frame),
         )
