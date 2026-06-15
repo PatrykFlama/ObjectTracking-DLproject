@@ -38,7 +38,7 @@ from objtracker.pipeline import TrackingPipeline
 # 1. Initialize the modular pipeline
 pipeline = TrackingPipeline(
     detector=build_detector("yolo"),       # Options: "yolo", "rfdetr"
-    tracker=build_tracker("bytetrack"),    # Options: "bytetrack", "botsort"
+    tracker=build_tracker("bytetrack"),    # Options: "bytetrack", "botsort, deepsort"
 )
 
 # 2. Process a video frame-by-frame
@@ -142,6 +142,7 @@ tests/
 
 * ByteTrack
 * BotSORT
+* DeepSORT
 
 Additional detectors and trackers can be integrated by implementing the corresponding interfaces and registering them in the factory functions.
 

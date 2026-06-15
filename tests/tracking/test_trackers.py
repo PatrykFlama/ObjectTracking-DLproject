@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
+import numpy as np
 import pytest
 import torch
 
@@ -16,6 +17,9 @@ TRACKER_KWARGS: dict[str, dict[str, Any]] = {
     "bytetrack": {
         "track_activation_threshold": 0.5,
         "high_conf_det_threshold": 0.5,
+    },
+    "deepsort": {
+        "n_init": 1,
     },
 }
 
@@ -35,9 +39,11 @@ def _detections(
 def test_registered_tracker_produces_tracks(tracker_name: str) -> None:
     tracker = build_tracker(tracker_name, **TRACKER_KWARGS[tracker_name])
 
+    dummy_frame = np.zeros((100, 100, 3), dtype=np.uint8)
+
     tracks = []
     for _ in range(3):
-        tracks = tracker.update(_detections([[0, 0, 10, 10]], [0.9]))
+        tracks = tracker.update(_detections([[0, 0, 10, 10]], [0.9]), frame=dummy_frame)
         if tracks:
             break
 
@@ -51,6 +57,7 @@ def test_registered_tracker_produces_tracks(tracker_name: str) -> None:
 @pytest.mark.parametrize("tracker_name", sorted(TRACKERS))
 def test_registered_tracker_accepts_prediction_mapping(tracker_name: str) -> None:
     tracker = build_tracker(tracker_name, **TRACKER_KWARGS[tracker_name])
+    dummy_frame = np.zeros((100, 100, 3), dtype=np.uint8)
     prediction = {
         "boxes": torch.tensor([[0, 0, 10, 10]], dtype=torch.float64),
         "scores": torch.tensor([0.9], dtype=torch.float64),
@@ -58,7 +65,7 @@ def test_registered_tracker_accepts_prediction_mapping(tracker_name: str) -> Non
 
     tracks = []
     for _ in range(3):
-        tracks = tracker.update(prediction)
+        tracks = tracker.update(prediction, frame=dummy_frame)
         if tracks:
             break
 
@@ -70,15 +77,16 @@ def test_registered_tracker_accepts_prediction_mapping(tracker_name: str) -> Non
 @pytest.mark.parametrize("tracker_name", sorted(TRACKERS))
 def test_registered_tracker_reset_clears_state(tracker_name: str) -> None:
     tracker = build_tracker(tracker_name, **TRACKER_KWARGS[tracker_name])
+    dummy_frame = np.zeros((100, 100, 3), dtype=np.uint8)
 
-    assert tracker.update(_detections([[0, 0, 10, 10]], [0.9])) or tracker.update(
-        _detections([[0, 0, 10, 10]], [0.9])
-    )
+    assert tracker.update(
+        _detections([[0, 0, 10, 10]], [0.9]), frame=dummy_frame
+    ) or tracker.update(_detections([[0, 0, 10, 10]], [0.9]), frame=dummy_frame)
 
     tracker.reset()
 
-    tracker.update(_detections([[20, 20, 30, 30]], [0.9]))
-    tracks = tracker.update(_detections([[20, 20, 30, 30]], [0.9]))
+    tracker.update(_detections([[20, 20, 30, 30]], [0.9]), frame=dummy_frame)
+    tracks = tracker.update(_detections([[20, 20, 30, 30]], [0.9]), frame=dummy_frame)
 
     assert tracks
 

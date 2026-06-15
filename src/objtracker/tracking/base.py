@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Protocol
+from typing import TYPE_CHECKING, Any, Protocol
 
 if TYPE_CHECKING:
     from collections.abc import Mapping
@@ -17,6 +17,8 @@ class MultiObjectTracker(Protocol):
         """Clear all per-sequence state."""
         ...
 
-    def update(self, detections: Detections | Mapping[str, Tensor]) -> list[Track]:
+    def update(
+        self, detections: Detections | Mapping[str, Tensor], frame: Any | None = None
+    ) -> list[Track]:
         """Advance the tracker by one frame and return current tracks."""
         ...

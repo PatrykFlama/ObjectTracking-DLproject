@@ -32,6 +32,7 @@ class FakeTracker:
     def update(
         self,
         detections: Detections | Mapping[str, torch.Tensor],
+        frame: Any | None = None,
     ) -> list[Track]:
         detections = as_detections(detections)
         labels = detections.labels

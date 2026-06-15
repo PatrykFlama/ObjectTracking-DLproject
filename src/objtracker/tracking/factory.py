@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING, Any
 
 from objtracker.tracking.bot_sort_track import BoTSORTTrack, BoTSORTTrackConfig
 from objtracker.tracking.byte_track import ByteTrack, ByteTrackConfig
+from objtracker.tracking.deep_sort_track import DeepSORTTrack, DeepSORTTrackConfig
 
 if TYPE_CHECKING:
     from objtracker.tracking.base import MultiObjectTracker
@@ -19,6 +20,7 @@ class TrackerRegistration:
 TRACKERS = {
     "botsort": TrackerRegistration(BoTSORTTrack, BoTSORTTrackConfig),
     "bytetrack": TrackerRegistration(ByteTrack, ByteTrackConfig),
+    "deepsort": TrackerRegistration(DeepSORTTrack, DeepSORTTrackConfig),
 }
 
 

@@ -35,7 +35,10 @@ def main():
         "--detector", type=str, default="yolo", choices=["yolo", "rfdetr"]
     )
     parser.add_argument(
-        "--tracker", type=str, default="bytetrack", choices=["bytetrack", "botsort"]
+        "--tracker",
+        type=str,
+        default="bytetrack",
+        choices=["bytetrack", "botsort", "deepsort"],
     )
     parser.add_argument(
         "--output", type=str, default="demo_output.mp4", help="Output video path"
