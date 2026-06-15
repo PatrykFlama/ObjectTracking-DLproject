@@ -18,7 +18,9 @@ TRACKER_KWARGS: dict[str, dict[str, Any]] = {
         "track_activation_threshold": 0.5,
         "high_conf_det_threshold": 0.5,
     },
-    "deepsort": {},
+    "deepsort": {
+        "n_init": 1,
+    },
 }
 
 
