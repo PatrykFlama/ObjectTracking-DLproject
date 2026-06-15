@@ -23,6 +23,7 @@ dependencies = [
 
 [project.scripts]
 objtracker-compare-models = "objtracker.cli.compare_models:main"
+objtracker-demo = "objtracker.run_demo:main"
 objtracker-evaluate = "objtracker.cli.evaluate:main"
 objtracker-optuna = "objtracker.cli.optuna_search:main"
 objtracker-train = "objtracker.cli.train:main"

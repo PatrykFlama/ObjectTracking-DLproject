@@ -58,7 +58,7 @@ if ret:
 ## Running a Video Demo
 To easily test the pipeline and generate an MP4 visualization, run our demo script. You can seamlessly swap models via the command line:
 ```bash
-uv run python src/objtracker/run_demo.py --detector yolo --tracker bytetrack
+uv run objtracker-demo --detector yolo --tracker bytetrack
 ```
 
 ---
